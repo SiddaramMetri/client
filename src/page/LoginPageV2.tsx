@@ -50,7 +50,7 @@ const LoginPage = () => {
   let loading = false;
 
   const handleOAuth = (provider: string) => {
-    toast(`Redirecting to ${provider}...`);
+    
     window.location.href = `${
       import.meta.env.VITE_BACKEND_BASE_URL
     }/api/auth/${provider}`;

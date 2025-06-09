@@ -4,6 +4,7 @@ import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { Button } from "@/components/ui/button";
 import useCreateProjectDialog from "@/hooks/use-create-project-dialog";
 import StudentsPage from "../students";
+import { SectionCards } from "@/components/section-cards";
 
 const WorkspaceDashboard = () => {
   const { onOpen } = useCreateProjectDialog();
@@ -22,6 +23,9 @@ const WorkspaceDashboard = () => {
           <Plus />
           New Project
         </Button>
+      </div>
+      <div className="flex flex-col gap-4">
+        <SectionCards />
       </div>
       <div className="px-4 lg:px-6">
         <ChartAreaInteractive />
