@@ -13,7 +13,6 @@ import { useMutation } from "@tanstack/react-query";
 import { AlertCircle, GraduationCap, Loader2 } from "lucide-react";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 const LoginPage = () => {
   const navigate = useNavigate();
