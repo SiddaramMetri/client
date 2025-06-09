@@ -1,0 +1,62 @@
+[
+  {
+   "id": 123123,
+   "name": "John Doe",
+   "email": "john.doe@example.com",
+   "mobile": "123-456-7890",
+   "role": "superadmin",
+   "status": "active",
+   "isVerified": true,
+   "lastLogin": "2023-10-01T12:34:56Z"
+  },
+  {
+   "id": 456456,
+   "name": "Jane Smith",
+   "email": "jane.smith@example.com",
+   "mobile": "987-654-3210",
+   "role": "admin",
+   "status": "inactive",
+   "isVerified": true,
+   "lastLogin": "2023-10-02T12:34:56Z"
+  },
+  {
+   "id": 789789,
+   "name": "Alice Johnson",
+   "email": "alice.johnson@example.com",
+   "mobile": "555-555-5555",
+   "role": "faculty",
+   "status": "blocked",
+   "isVerified": true,
+   "lastLogin": "2023-10-03T12:34:56Z"
+  },
+  {
+   "id": 101010,
+   "name": "Bob Brown",
+   "email": "bob.brown@example.com",
+   "mobile": "444-444-4444",
+   "role": "guest",
+   "status": "blocked",
+   "isVerified": true,
+   "lastLogin": "2023-10-04T12:34:56Z"
+  },
+  {
+   "id": 111111,
+   "name": "Charlie White",
+   "email": "charlie.white@example.com",
+   "mobile": "333-333-3333",
+   "role": "faculty",
+   "status": "active",
+   "isVerified": true,
+   "lastLogin": "2023-10-05T12:34:56Z"
+  },
+  {
+   "id": 222222,
+   "name": "David Green",
+   "email": "david.green@example.com",
+   "mobile": "222-222-2222",
+   "role": "moderator",
+   "status": "blocked",
+   "isVerified": true,
+   "lastLogin": "2023-10-06T12:34:56Z"
+  }
+]
