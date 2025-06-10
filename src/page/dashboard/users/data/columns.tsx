@@ -165,29 +165,12 @@ export const createColumns = (actions: {
         </Badge>
       );
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, _, value) => {
       const isActive = row.getValue("isActive") as boolean;
       if (value === "all") return true;
       if (value === "active") return isActive === true;
       if (value === "inactive") return isActive === false;
       return true;
-    },
-  },
-  {
-    accessorKey: "currentWorkspace",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Workspace" />
-    ),
-    cell: ({ row }) => {
-      const workspace = row.getValue("currentWorkspace") as User["currentWorkspace"];
-      if (!workspace) {
-        return <span className="text-muted-foreground">No workspace</span>;
-      }
-      return (
-        <Badge variant="outline">
-          {workspace.name}
-        </Badge>
-      );
     },
   },
   {

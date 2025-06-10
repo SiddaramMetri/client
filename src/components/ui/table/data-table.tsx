@@ -25,6 +25,7 @@ import {
 
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
+import TableSkeleton from "@/components/skeleton-loaders/table-skeleton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -48,6 +49,7 @@ interface DataTableProps<TData, TValue> {
   totalCount?: number;
   search: string;
   handleSearchChange: (value: string) => void;
+  isLoading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -70,8 +72,8 @@ export function DataTable<TData, TValue>({
   totalCount,
   search,
   handleSearchChange,
+  isLoading = false,
 }: DataTableProps<TData, TValue>) {
-
   console.log("data =====", data);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -82,7 +84,9 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   // Determine if server-side pagination is being used
-  const isServerSide = Boolean(pageCount && currentPage !== undefined && onPageChange);
+  const isServerSide = Boolean(
+    pageCount && currentPage !== undefined && onPageChange
+  );
   const defaultPageSize = externalPageSize || 10;
 
   const table = useReactTable({
@@ -113,9 +117,9 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: isServerSide 
+    onPaginationChange: isServerSide
       ? (updater) => {
-          if (typeof updater === 'function') {
+          if (typeof updater === "function") {
             const newPagination = updater({
               pageIndex: (currentPage || 1) - 1,
               pageSize: defaultPageSize,
@@ -134,7 +138,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="w-full space-y-2 mb-4">
       <DataTableToolbar
         table={table}
         AddButtonText={AddButtonText}
@@ -148,71 +152,70 @@ export function DataTable<TData, TValue>({
         search={search}
         handleSearchChange={handleSearchChange}
       />
-      <div className="rounded-md border overflow-x-auto">
-        <div className="min-w-full inline-block align-middle">
-          <div className="overflow-hidden">
-            <Table>
-              <TableHeader className="bg-muted sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead
-                          key={header.id}
-                          colSpan={header.colSpan}
-                          className="whitespace-nowrap px-4 text-left text-sm"
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
+      <div className="rounded-md border">
+        {isLoading ? (
+          <TableSkeleton columns={columns.length} rows={10} />
+        ) : (
+          <Table>
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        className="whitespace-nowrap px-4 text-left text-sm"
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="whitespace-nowrap px-4 text-sm"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className="hover:bg-muted/50 transition-colors"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className="whitespace-nowrap px-4 text-sm"
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      No results found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    No results found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
-      <div className="mt-4">
-        <DataTablePagination table={table} totalCount={totalCount} />
-      </div>
+
+      <DataTablePagination table={table} totalCount={totalCount} />
     </div>
   );
 }

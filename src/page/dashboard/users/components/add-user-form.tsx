@@ -111,7 +111,7 @@ export default function AddUserForm({ onClose }: AddUserFormProps) {
                   <FormControl>
                     <Input 
                       placeholder="Enter full name" 
-                      className="!h-[48px]"
+                      
                       {...field} 
                     />
                   </FormControl>
@@ -130,7 +130,7 @@ export default function AddUserForm({ onClose }: AddUserFormProps) {
                     <Input 
                       type="email" 
                       placeholder="Enter email address" 
-                      className="!h-[48px]"
+                      
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
@@ -156,7 +156,7 @@ export default function AddUserForm({ onClose }: AddUserFormProps) {
                     <Input 
                       type="password" 
                       placeholder="Enter password (optional)" 
-                      className="!h-[48px]"
+                      
                       {...field} 
                     />
                   </FormControl>
@@ -178,7 +178,7 @@ export default function AddUserForm({ onClose }: AddUserFormProps) {
                     <Input 
                       type="url" 
                       placeholder="https://example.com/avatar.jpg" 
-                      className="!h-[48px]"
+                      
                       {...field} 
                     />
                   </FormControl>
@@ -217,14 +217,14 @@ export default function AddUserForm({ onClose }: AddUserFormProps) {
                 variant="outline" 
                 onClick={handleClose}
                 disabled={createUserMutation.isPending}
-                className="!h-[48px]"
+                
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
                 disabled={createUserMutation.isPending}
-                className="min-w-[100px] !h-[48px]"
+                className="min-w-[100px]"
               >
                 {createUserMutation.isPending ? (
                   <>

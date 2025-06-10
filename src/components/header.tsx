@@ -16,10 +16,11 @@ const Header = () => {
   const pathname = location.pathname;
 
   const getPageLabel = (pathname: string) => {
-    if (pathname.includes("/project/")) return "Project";
-    if (pathname.includes("/settings")) return "Settings";
+    if (pathname.includes("/students")) return "Students";
+    if (pathname.includes("/users")) return "Users";
+    if (pathname.includes("/classes")) return "Classes";
     if (pathname.includes("/tasks")) return "Tasks";
-    if (pathname.includes("/members")) return "Members";
+    if (pathname.includes("/members")) return "Members"; 
     return null; // Default label
   };
 
