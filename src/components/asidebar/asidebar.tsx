@@ -22,32 +22,28 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuthContext } from "@/context/auth-provider";
-import useWorkspaceId from "@/hooks/use-workspace-id";
 import { EllipsisIcon, Loader, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Separator } from "../ui/separator";
 import LogoutDialog from "./logout-dialog";
 import { NavMain } from "./nav-main";
-import { NavProjects } from "./nav-projects";
 
 const Asidebar = () => {
   const { isLoading, user } = useAuthContext();
 
   const { open } = useSidebar();
-  const workspaceId = useWorkspaceId();
-
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <Sidebar collapsible="icon">
-        <SidebarHeader className="!py-0 dark:bg-background">
+      <Sidebar collapsible="icon" variant="inset">
+        <SidebarHeader className="!py-0 dark:bg-background ">
           <div className="flex h-[50px] items-center justify-start w-full px-1">
-            <Logo url={`/workspace/${workspaceId}`} />
+            <Logo url={`/dashboard`} />
             {open && (
               <Link
-                to={`/workspace/${workspaceId}`}
+                to={`/dashboard`}
                 className="hidden md:flex ml-2 items-center gap-2 self-center font-medium"
               >
                 CMSys <small className="text-xs text-muted-foreground">v1.0</small>
@@ -60,8 +56,7 @@ const Asidebar = () => {
             <SidebarGroupContent>
               <Separator />
               <NavMain />
-              <Separator />
-              <NavProjects />
+
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>

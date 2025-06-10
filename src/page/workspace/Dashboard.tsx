@@ -24,7 +24,7 @@ const WorkspaceDashboard = () => {
           New Project
         </Button>
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-row gap-4">
         <SectionCards />
       </div>
       <div className="px-4 lg:px-6">

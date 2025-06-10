@@ -9,13 +9,13 @@ export const AUTH_ROUTES = {
 };
 
 export const PROTECTED_ROUTES = {
-  WORKSPACE: "/workspace/:workspaceId",
-  TASKS: "/workspace/:workspaceId/tasks",
-  MEMBERS: "/workspace/:workspaceId/members",
-  SETTINGS: "/workspace/:workspaceId/settings",
-  PROJECT_DETAILS: "/workspace/:workspaceId/project/:projectId",
+  WORKSPACE: "/dashboard",
+  TASKS: "/dashboard/tasks",
+  MEMBERS: "/dashboard/members",
+  SETTINGS: "/dashboard/settings",
+  PROJECT_DETAILS: "/dashboard/project/:projectId",
 };
 
 export const BASE_ROUTE = {
-  INVITE_URL: "/invite/workspace/:inviteCode/join",
+  INVITE_URL: "/invite/dashboard/:inviteCode/join",
 };
