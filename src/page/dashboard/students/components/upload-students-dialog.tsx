@@ -179,21 +179,7 @@ export default function UploadStudentsDialog({
               </ul>
             </AlertDescription>
           </Alert>
-          
-          {/* Examples of common validation errors */}
-          <Alert className="bg-amber-50 border-amber-200">
-            <AlertCircle className="h-4 w-4 text-amber-500" />
-            <AlertDescription className="text-sm text-amber-700">
-              <p><strong>Common validation errors and how to fix them:</strong></p>
-              <ul className="list-disc pl-5 mt-1 space-y-1">
-                <li><strong>"Cast to date failed for value 'Invalid Date'"</strong>: Make sure date format is YYYY-MM-DD</li>
-                <li><strong>"Path `gender` is required"</strong>: Ensure gender is exactly "male", "female", or "other" (case insensitive)</li>
-                <li><strong>"Roll number already exists in this class"</strong>: Use unique roll numbers within the same class</li>
-                <li><strong>"Cast to ObjectId failed"</strong>: Use the Class Lookup tool to get valid class IDs</li>
-              </ul>
-            </AlertDescription>
-          </Alert>
-          
+          <br/>
           {!uploadResult ? (
             <>
               <FileUploader
@@ -325,16 +311,6 @@ export default function UploadStudentsDialog({
 
           {!uploadResult && (
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleDownloadTemplate}
-                disabled={uploading}
-              >
-                <FileSpreadsheet className="mr-2 h-4 w-4" />
-                Download Template
-              </Button>
-
               <Button
                 type="button"
                 onClick={handleUpload}
