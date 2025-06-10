@@ -11,6 +11,7 @@ import Dashboard from "@/page/workspace/Dashboard";
 import UsersPage from "@/page/dashboard/users";
 import StudentsPage from "@/page/dashboard/students";
 import ClassesPage from "@/page/dashboard/classes/index_new";
+import AttendancePage from "@/page/dashboard/attendance";
 
 export const authenticationRoutePaths = [
   { path: AUTH_ROUTES.SIGN_IN, element: <SignIn /> },
@@ -23,6 +24,7 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.USERS, element: <UsersPage /> },
   { path: PROTECTED_ROUTES.CLASSES, element: <ClassesPage /> },
   { path: PROTECTED_ROUTES.STUDENTS, element: <StudentsPage /> },
+  { path: PROTECTED_ROUTES.ATTENDANCE, element: <AttendancePage /> },
   { path: PROTECTED_ROUTES.TASKS, element: <Tasks /> },
   { path: PROTECTED_ROUTES.MEMBERS, element: <Members /> },
   { path: PROTECTED_ROUTES.SETTINGS, element: <Settings /> },

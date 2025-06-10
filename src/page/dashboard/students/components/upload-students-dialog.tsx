@@ -10,10 +10,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { FileUploader } from "react-drag-drop-files";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, School } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { downloadStudentTemplateService, uploadStudentExcelService, StudentUploadResult } from "@/services/student.service";
+import ClassLookupDialog from "./class-lookup-dialog";
 
 interface UploadStudentsDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ export default function UploadStudentsDialog({
   const [error, setError] = useState<string | null>(null);
   const [uploadResult, setUploadResult] = useState<StudentUploadResult | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [classLookupOpen, setClassLookupOpen] = useState(false);
   const { toast } = useToast();
 
   const fileTypes = ["xlsx", "xls"];
@@ -153,6 +155,45 @@ export default function UploadStudentsDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Helpful tips to prevent common errors */}
+          <Alert className="bg-blue-50 border-blue-200">
+            <AlertCircle className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-sm text-blue-700">
+              <p><strong>Important tips for Excel upload:</strong></p>
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                <li>Use the template for proper column formatting (see Instructions tab)</li>
+                <li>Date format must be <strong>YYYY-MM-DD</strong> (e.g., 2012-05-15)</li>
+                <li>Gender must be one of: <strong>male</strong>, <strong>female</strong>, or <strong>other</strong></li>
+                <li>Class ID must be a valid MongoDB ObjectId 
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    onClick={() => setClassLookupOpen(true)} 
+                    className="p-0 h-auto font-normal underline text-blue-700 ml-1"
+                  >
+                    (lookup class IDs)
+                  </Button>
+                </li>
+                <li><strong>Required fields:</strong> First name, Last name, Date of Birth, Gender, 
+                  Class ID, Roll Number, Student Mobile, Father's Name, Primary Mobile</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+          
+          {/* Examples of common validation errors */}
+          <Alert className="bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <AlertDescription className="text-sm text-amber-700">
+              <p><strong>Common validation errors and how to fix them:</strong></p>
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                <li><strong>"Cast to date failed for value 'Invalid Date'"</strong>: Make sure date format is YYYY-MM-DD</li>
+                <li><strong>"Path `gender` is required"</strong>: Ensure gender is exactly "male", "female", or "other" (case insensitive)</li>
+                <li><strong>"Roll number already exists in this class"</strong>: Use unique roll numbers within the same class</li>
+                <li><strong>"Cast to ObjectId failed"</strong>: Use the Class Lookup tool to get valid class IDs</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+          
           {!uploadResult ? (
             <>
               <FileUploader
@@ -191,23 +232,57 @@ export default function UploadStudentsDialog({
           ) : (
             <div className="border rounded-lg p-6 bg-gray-50">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <CheckCircle className="h-8 w-8 text-green-500" />
-                <h3 className="text-lg font-medium">Upload Successful</h3>
+                {uploadResult.failed === 0 ? (
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-8 w-8 text-amber-500" />
+                )}
+                <h3 className="text-lg font-medium">
+                  {uploadResult.failed === 0 ? "Upload Successful" : "Upload Completed with Errors"}
+                </h3>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-center">
+              
+              <div className="grid grid-cols-2 gap-4 text-center mb-4">
                 <div className="border rounded-md p-4 bg-green-50">
-                  <p className="text-sm text-gray-600">Successful</p>
+                  <p className="text-sm text-gray-600">Successfully Uploaded</p>
                   <p className="text-2xl font-bold text-green-600">
                     {uploadResult.success}
                   </p>
                 </div>
-                <div className="border rounded-md p-4 bg-red-50">
-                  <p className="text-sm text-gray-600">Failed</p>
-                  <p className="text-2xl font-bold text-red-600">
+                <div className={`border rounded-md p-4 ${uploadResult.failed > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                  <p className="text-sm text-gray-600">Failed Rows</p>
+                  <p className={`text-2xl font-bold ${uploadResult.failed > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                     {uploadResult.failed}
                   </p>
                 </div>
               </div>
+              
+              {uploadResult.failed > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold mb-2">Error Details:</h4>
+                  <div className="max-h-40 overflow-y-auto border rounded bg-white p-2">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-2 py-1 text-left">Row</th>
+                          <th className="px-2 py-1 text-left">Error</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {uploadResult.errors.map((error, index) => (
+                          <tr key={index} className="border-t">
+                            <td className="px-2 py-1 font-mono">{error.row}</td>
+                            <td className="px-2 py-1 text-red-600">{error.error}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Fix these errors in your Excel file and try uploading again.
+                  </p>
+                </div>
+              )}
               {uploadResult.errors && uploadResult.errors.length > 0 && (
                 <div className="mt-4">
                   <p className="text-sm font-medium mb-2">Errors:</p>
@@ -285,6 +360,12 @@ export default function UploadStudentsDialog({
           )}
         </DialogFooter>
       </DialogContent>
+      
+      {/* Class Lookup Dialog */}
+      <ClassLookupDialog 
+        open={classLookupOpen}
+        onOpenChange={setClassLookupOpen}
+      />
     </Dialog>
   );
 }

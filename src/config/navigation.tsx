@@ -81,6 +81,13 @@ export const data: NavigationConfig = {
             permissions: ['students.view']
         },
         {
+            title: "Attendance",
+            url: "/dashboard/attendance",
+            icon: IconDatabase,
+            items: [],
+            permissions: ['students.view']
+        },
+        {
             title: "Calendar",
             url: "/dashboard/calendar",
             icon: IconCalendar,

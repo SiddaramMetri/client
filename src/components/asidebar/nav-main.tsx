@@ -58,6 +58,11 @@ export function NavMain() {
       ],
     },
     {
+      title: "Attendance",
+      url: `/dashboard/attendance`,
+      icon: Users,
+    },
+    {
       title: "Classes",
       url: `/dashboard/classes`,
       icon: GraduationCap,
