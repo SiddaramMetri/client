@@ -1,32 +1,62 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, CheckCircle2, ClipboardCheck, Filter, Loader2, Search, UserX } from "lucide-react";
-import AttendanceTable from "./components/attendance-table";
-import AttendanceGrid from "./components/attendance-grid";
+import { Calendar, CheckCircle2, ClipboardCheck, Loader2, UserX } from "lucide-react";
 import ClassSelector from "./components/class-selector";
 import DatePicker from "./components/date-picker";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AttendanceStats from "./components/attendance-stats";
+import AttendanceView from "./components/attendance-view-with-keyboard";
+import AttendanceActionsModal from "./components/attendance-actions-modal";
+import AttendanceHelpGuide from "./components/attendance-help-guide";
+import AccessibilityHelp from "./components/accessibility-help";
+import { syncAttendanceData } from "./utils/attendance-utils";
+
+// Define Student type
+interface Student {
+  id: string;
+  studentId: string;
+  firstName: string;
+  lastName: string;
+  rollNumber: string;
+  className: string;
+  attendanceStatus: 'present' | 'absent' | 'leave';
+  profileImage: string | null;
+  gender: 'male' | 'female' | 'other';
+  lastSeen?: string; 
+  isOnline?: boolean;
+}
 
 export default function AttendancePage() {
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [viewType, setViewType] = useState<'table' | 'grid'>('table');
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [saveInProgress, setSaveInProgress] = useState(false);
   const [attendanceStats, setAttendanceStats] = useState({
     present: 0,
     absent: 0,
+    leave: 0,
     total: 0
   });
-  const isMobile = useMediaQuery("(max-width: 640px)");
   
   const { toast } = useToast();
+  
+  // Update attendance stats whenever student attendance changes
+  const updateAttendanceStats = (students: Student[]) => {
+    const present = students.filter(s => s.attendanceStatus === 'present').length;
+    const absent = students.filter(s => s.attendanceStatus === 'absent').length;
+    const leave = students.filter(s => s.attendanceStatus === 'leave').length;
+    
+    setAttendanceStats({
+      present,
+      absent,
+      leave,
+      total: students.length
+    });
+  };
 
   // Fetch students for selected class
   useEffect(() => {
@@ -38,32 +68,57 @@ export default function AttendancePage() {
 
       setLoading(true);
       try {
-        // In real app, this would be an API call to fetch students by class
-        // const response = await apiClient.get(`/api/classes/${selectedClass}/students`);
-        // setStudents(response.data);
-        
         // For this demo, use mock data
         await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API latency
         
-        // Create 30 students for demo (or use the 1000 for pagination demo)
-        const mockStudents = Array.from({ length: 30 }, (_, i) => ({
-          id: `student-${i + 1}`,
-          studentId: `STD${10001 + i}`,
-          firstName: `Student`,
-          lastName: `${i + 1}`,
-          rollNumber: `${1001 + i}`,
-          className: selectedClass,
-          isPresent: Math.random() > 0.2, // 80% are present by default
-          profileImage: null,
-          gender: i % 2 === 0 ? 'male' : 'female',
-        }));
+        // Create 30 students for demo
+        const mockStudents = Array.from({ length: 30 }, (_, i) => {
+          // Generate random attendance status with probability distribution
+          const rand = Math.random();
+          let attendanceStatus: 'present' | 'absent' | 'leave';
+          
+          if (rand < 0.75) {
+            attendanceStatus = 'present'; // 75% present
+          } else if (rand < 0.90) {
+            attendanceStatus = 'leave';  // 15% leave
+          } else {
+            attendanceStatus = 'absent'; // 10% absent
+          }
+          
+          // Determine if student is online (20% chance)
+          const isOnline = Math.random() < 0.2;
+          
+          // Generate a random "last seen" time for offline students
+          const getRandomLastSeen = () => {
+            const now = new Date();
+            const hoursAgo = Math.floor(Math.random() * 24); // 0-24 hours ago
+            const minutesAgo = Math.floor(Math.random() * 60); // 0-60 minutes ago
+            now.setHours(now.getHours() - hoursAgo);
+            now.setMinutes(now.getMinutes() - minutesAgo);
+            return now.toLocaleString();
+          };
+          
+          return {
+            id: `student-${i + 1}`,
+            studentId: `STD${10001 + i}`,
+            firstName: `Student`,
+            lastName: `${i + 1}`,
+            rollNumber: `${1001 + i}`,
+            className: selectedClass,
+            attendanceStatus,
+            profileImage: null,
+            gender: (i % 2 === 0 ? 'male' : 'female') as 'male' | 'female',
+            isOnline: isOnline,
+            lastSeen: isOnline ? undefined : getRandomLastSeen()
+          };
+        });
         
         setStudents(mockStudents);
         updateAttendanceStats(mockStudents);
       } catch (error) {
         console.error("Failed to fetch students:", error);
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
           description: "Failed to load student data",
         });
@@ -73,24 +128,13 @@ export default function AttendancePage() {
     };
 
     fetchStudentsForClass();
-  }, [selectedClass, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClass]);
 
-  // Update attendance stats whenever student attendance changes
-  const updateAttendanceStats = (students: any[]) => {
-    const present = students.filter(s => s.isPresent).length;
-    const absent = students.length - present;
-    
-    setAttendanceStats({
-      present,
-      absent,
-      total: students.length
-    });
-  };
-
-  const handleToggleAttendance = (studentId: string) => {
+  const handleToggleAttendance = (studentId: string, newStatus: 'present' | 'absent' | 'leave') => {
     const updatedStudents = students.map(student => {
       if (student.id === studentId) {
-        return { ...student, isPresent: !student.isPresent };
+        return { ...student, attendanceStatus: newStatus };
       }
       return student;
     });
@@ -98,7 +142,7 @@ export default function AttendancePage() {
     setStudents(updatedStudents);
     updateAttendanceStats(updatedStudents);
   };
-
+  
   const handleClassChange = (classId: string) => {
     setSelectedClass(classId);
   };
@@ -112,7 +156,7 @@ export default function AttendancePage() {
   const handleMarkAllPresent = () => {
     const updatedStudents = students.map(student => ({
       ...student,
-      isPresent: true
+      attendanceStatus: 'present'
     }));
     
     setStudents(updatedStudents);
@@ -122,7 +166,17 @@ export default function AttendancePage() {
   const handleMarkAllAbsent = () => {
     const updatedStudents = students.map(student => ({
       ...student,
-      isPresent: false
+      attendanceStatus: 'absent'
+    }));
+    
+    setStudents(updatedStudents);
+    updateAttendanceStats(updatedStudents);
+  };
+  
+  const handleMarkAllLeave = () => {
+    const updatedStudents = students.map(student => ({
+      ...student,
+      attendanceStatus: 'leave'
     }));
     
     setStudents(updatedStudents);
@@ -132,29 +186,33 @@ export default function AttendancePage() {
   const handleSaveAttendance = async () => {
     setSaveInProgress(true);
     try {
-      // In a real app, this would be an API call to save attendance
-      // const response = await apiClient.post('/api/attendance', {
-      //   classId: selectedClass,
-      //   date: selectedDate,
-      //   students: students.map(s => ({
-      //     studentId: s.id,
-      //     isPresent: s.isPresent
-      //   }))
-      // });
+      // Use the sync utility function
+      const result = await syncAttendanceData(
+        selectedClass as string,
+        selectedDate,
+        students
+      );
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Get attendance summary for toast message
+      const present = students.filter(s => s.attendanceStatus === 'present').length;
+      const absent = students.filter(s => s.attendanceStatus === 'absent').length;
+      const leave = students.filter(s => s.attendanceStatus === 'leave').length;
       
-      toast({
-        title: "Attendance Saved",
-        description: `Attendance for ${selectedDate.toLocaleDateString()} has been recorded successfully.`,
-      });
+      if (result.success) {
+        toast({
+          title: "Attendance Saved",
+          description: `Attendance for ${selectedDate.toLocaleDateString()} has been recorded successfully. Summary: ${present} present, ${leave} on leave, ${absent} absent.`,
+        });
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error) {
-      console.error("Failed to save attendance:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save attendance data";
+      console.error("Failed to save attendance:", errorMessage);
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save attendance data",
+        variant: "error",
+        title: "Error Saving Attendance",
+        description: errorMessage,
       });
     } finally {
       setSaveInProgress(false);
@@ -174,58 +232,37 @@ export default function AttendancePage() {
               Track and manage daily student attendance
             </p>
           </div>
+          <div className="flex items-center space-x-2">
+            <AccessibilityHelp />
+            <AttendanceHelpGuide />
+            {selectedClass && students.length > 0 && (
+              <AttendanceActionsModal 
+                classId={selectedClass}
+                className={selectedClass}
+                date={selectedDate}
+                students={students}
+                isLoading={loading || saveInProgress}
+              />
+            )}
+          </div>
         </div>
 
         {/* Filters & Actions Row */}
         <Card>
           <CardContent className="p-4 sm:p-6">
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 items-center">
-              <div className="col-span-1 sm:col-span-1">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 items-center">
+              <div className="col-span-1">
                 <ClassSelector onClassChange={handleClassChange} />
               </div>
-              <div className="col-span-1 sm:col-span-1">
+              <div className="col-span-1">
                 <DatePicker date={selectedDate} onDateChange={handleDateChange} />
               </div>
               
-              <div className="sm:col-span-1">
-                <Tabs defaultValue={viewType} onValueChange={(v) => setViewType(v as 'table' | 'grid')}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="table" className="text-xs sm:text-sm">
-                      Table View
-                    </TabsTrigger>
-                    <TabsTrigger value="grid" className="text-xs sm:text-sm">
-                      Grid View
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-              
-              <div className="col-span-1 sm:col-span-1 md:col-span-1 flex space-x-2 justify-end">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleMarkAllPresent}
-                  disabled={!selectedClass || loading}
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-1" />
-                  <span className="hidden sm:inline">Mark All</span> Present
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleMarkAllAbsent}
-                  disabled={!selectedClass || loading}
-                >
-                  <UserX className="h-4 w-4 mr-1" />
-                  <span className="hidden sm:inline">Mark All</span> Absent
-                </Button>
-              </div>
-              
-              <div className="col-span-1 md:col-span-1 flex justify-center md:justify-end">
+              <div className="col-span-1 flex justify-end">
                 <Button
                   onClick={handleSaveAttendance}
                   disabled={!selectedClass || loading || saveInProgress}
-                  className="w-full md:w-auto"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
                 >
                   {saveInProgress ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -236,11 +273,48 @@ export default function AttendancePage() {
                 </Button>
               </div>
             </div>
+            
+            {selectedClass && !loading && students.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4 border-t pt-4">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleMarkAllPresent}
+                  disabled={loading || saveInProgress}
+                  className="bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-300"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Mark All</span> Present
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleMarkAllLeave}
+                  disabled={loading || saveInProgress}
+                  className="bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/30 dark:text-yellow-300"
+                >
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Mark All</span> Leave
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleMarkAllAbsent}
+                  disabled={loading || saveInProgress}
+                  className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-300"
+                >
+                  <UserX className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Mark All</span> Absent
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Attendance Stats */}
-        <AttendanceStats stats={attendanceStats} />
+        {selectedClass && students.length > 0 && (
+          <AttendanceStats stats={attendanceStats} />
+        )}
         
         {/* Main Content */}
         <Card className="flex-1">
@@ -257,7 +331,7 @@ export default function AttendancePage() {
               })}
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 sm:p-6">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
@@ -280,25 +354,21 @@ export default function AttendancePage() {
                 </p>
               </div>
             ) : (
-              <ScrollArea className={`h-[calc(100vh-26rem)] ${viewType === 'grid' ? 'px-6 py-4' : ''}`}>
-                {viewType === 'grid' ? (
-                  <AttendanceGrid 
-                    students={students}
-                    onToggleAttendance={handleToggleAttendance}
-                  />
-                ) : (
-                  <AttendanceTable 
-                    students={students}
-                    onToggleAttendance={handleToggleAttendance}
-                  />
-                )}
+              <ScrollArea className="h-[calc(100vh-26rem)]">
+                <AttendanceView
+                  students={students}
+                  onStatusChange={handleToggleAttendance}
+                  isSaving={saveInProgress}
+                  viewType={viewType}
+                  onViewTypeChange={setViewType}
+                />
               </ScrollArea>
             )}
           </CardContent>
           
           {/* Footer with save button for easy access at bottom */}
           {selectedClass && students.length > 0 && (
-            <CardFooter className="flex justify-between p-4 sm:p-6">
+            <CardFooter className="flex justify-between p-4 sm:p-6 border-t">
               <div>
                 <p className="text-sm text-muted-foreground">
                   Showing {students.length} students
