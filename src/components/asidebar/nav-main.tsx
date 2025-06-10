@@ -1,20 +1,19 @@
 import {
-  LucideIcon,
-  Settings,
-  Users,
-  CheckCircle,
-  LayoutDashboard,
-} from "lucide-react";
-import {
   SidebarGroup,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Link, useLocation } from "react-router-dom";
-import useWorkspaceId from "@/hooks/use-workspace-id";
-import { useAuthContext } from "@/context/auth-provider";
 import { Permissions } from "@/constant";
+import { useAuthContext } from "@/context/auth-provider";
+import {
+  CheckCircle,
+  LayoutDashboard,
+  LucideIcon,
+  Settings,
+  Users,
+} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 type ItemType = {
   title: string;
@@ -29,7 +28,6 @@ export function NavMain() {
     Permissions.MANAGE_WORKSPACE_SETTINGS
   );
 
-  const workspaceId = useWorkspaceId();
   const location = useLocation();
 
   const pathname = location.pathname;
@@ -37,17 +35,17 @@ export function NavMain() {
   const items: ItemType[] = [
     {
       title: "Dashboard",
-      url: `/workspace/${workspaceId}`,
+      url: `/dashboard`,
       icon: LayoutDashboard,
     },
     {
       title: "Tasks",
-      url: `/workspace/${workspaceId}/tasks`,
+      url: `/dashboard/tasks`,
       icon: CheckCircle,
     },
     {
       title: "Members",
-      url: `/workspace/${workspaceId}/members`,
+      url: `/dashboard/members`,
       icon: Users,
     },
 
@@ -55,7 +53,7 @@ export function NavMain() {
       ? [
           {
             title: "Settings",
-            url: `/workspace/${workspaceId}/settings`,
+            url: `/dashboard/settings`,
             icon: Settings,
           },
         ]

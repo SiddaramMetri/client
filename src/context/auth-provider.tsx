@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useContext, useEffect } from "react";
-import useWorkspaceId from "@/hooks/use-workspace-id";
+import { PermissionType } from "@/constant";
 import useAuth from "@/hooks/api/use-auth";
 import { UserType, WorkspaceType } from "@/types/api.type";
-import useGetWorkspaceQuery from "@/hooks/api/use-get-workspace";
-import { useNavigate } from "react-router-dom";
-import usePermissions from "@/hooks/use-permissions";
-import { PermissionType } from "@/constant";
+import { createContext, useContext } from "react";
 
 // Define the context shape
 type AuthContextType = {
@@ -26,8 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const navigate = useNavigate();
-  const workspaceId = useWorkspaceId();
+  // const navigate = useNavigate();
 
   const {
     data: authData,
@@ -38,41 +33,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   } = useAuth();
   const user = authData?.user;
 
-  const {
-    data: workspaceData,
-    isLoading: workspaceLoading,
-    error: workspaceError,
-    refetch: refetchWorkspace,
-  } = useGetWorkspaceQuery(workspaceId);
-
-  const workspace = workspaceData?.workspace;
-
-  useEffect(() => {
-    if (workspaceError) {
-      if (workspaceError?.errorCode === "ACCESS_UNAUTHORIZED") {
-        navigate("/"); // Redirect if the user is not a member of the workspace
-      }
-    }
-  }, [navigate, workspaceError]);
-
-  const permissions = usePermissions(user, workspace);
-
-  const hasPermission = (permission: PermissionType): boolean => {
-    return permissions.includes(permission);
-  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        workspace,
-        hasPermission,
-        error: authError || workspaceError,
+        workspace: undefined,
+        hasPermission: () => true,
+        error: authError,
         isLoading,
         isFetching,
-        workspaceLoading,
+        workspaceLoading: false,
         refetchAuth,
-        refetchWorkspace,
+        refetchWorkspace: () => {},
       }}
     >
       {children}
