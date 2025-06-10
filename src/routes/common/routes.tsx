@@ -8,6 +8,8 @@ import Tasks from "@/page/workspace/Tasks";
 import { AUTH_ROUTES, BASE_ROUTE, PROTECTED_ROUTES } from "./routePaths";
 import InviteUser from "@/page/invite/InviteUser";
 import Dashboard from "@/page/workspace/Dashboard";
+import UsersPage from "@/page/dashboard/users";
+import StudentsPage from "@/page/dashboard/students";
 
 export const authenticationRoutePaths = [
   { path: AUTH_ROUTES.SIGN_IN, element: <SignIn /> },
@@ -17,6 +19,8 @@ export const authenticationRoutePaths = [
 
 export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.WORKSPACE, element: <Dashboard /> },
+  { path: PROTECTED_ROUTES.USERS, element: <UsersPage /> },
+  { path: PROTECTED_ROUTES.STUDENTS, element: <StudentsPage /> },
   { path: PROTECTED_ROUTES.TASKS, element: <Tasks /> },
   { path: PROTECTED_ROUTES.MEMBERS, element: <Members /> },
   { path: PROTECTED_ROUTES.SETTINGS, element: <Settings /> },
