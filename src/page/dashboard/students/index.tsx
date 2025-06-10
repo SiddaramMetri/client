@@ -1,73 +1,303 @@
-// import { z } from "zod"
 
-// import { columns } from "@/components/ui/table/columns"
+import { useState, useEffect, useCallback } from "react";
 import { DataTable } from "@/components/ui/table/data-table";
-// import { taskSchema } from "./data/schema"
 import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
-import { new_statuses } from "../users/data/data";
+import { 
+  Download, 
+  Upload, 
+  UserPlus,
+  Loader2
+} from "lucide-react";
 import { columns } from "./data/columns";
-import { priorities } from "./data/data";
-import New_tasks from "./data/tasks.json";
-
-// Simulate a database read for tasks.
-// async function getTasks() {
-
-//   const tasks = New_tasks
-
-//   return z.array(taskSchema).parse(tasks)
-// }
+import { priorities } from "./data/priorities";
+import { statuses } from "./data/statuses";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import mockStudents from "./data/mock-students.json";
+import { Task } from "./data/schema";
+import EditStudentDialog from "./components/edit-student-dialog";
+import ViewStudentDialog from "./components/view-student-dialog";
+import DeleteStudentDialog from "./components/delete-student-dialog";
+import UploadStudentsDialog from "./components/upload-students-dialog";
+import StudentRegistrationDialog from "./components/student-registration-dialog";
+import { downloadStudentTemplateService } from "@/services/student.service";
 
 export default function StudentsPage() {
-  const tasks = New_tasks;
+  const [tasks, setTasks] = useState<Task[]>(mockStudents); // Start with mock data, will be replaced with API
+  const [loading, setLoading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
+  
+  // Dialog states
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  
+  // Selected student for operations
+  const [selectedStudent, setSelectedStudent] = useState<Task | null>(null);
+  
+  const { toast } = useToast();
 
-  console.log("tasks ====>", tasks);
+  // Fetch students from API (using useCallback to avoid dependency issues)
+  const fetchStudents = useCallback(async () => {
+    setLoading(true);
+    try {
+      // This would be the actual API call in a production environment
+      // const response = await API.get("/student", {
+      //   params: {
+      //     isActive: activeFilter === 'active' ? true : 
+      //              activeFilter === 'inactive' ? false : undefined
+      //   }
+      // });
+      // setTasks(response.data.students);
+      
+      // For now, simulate API call and use the mock data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Filter mock data based on active filter
+      if (activeFilter === "active") {
+        setTasks(mockStudents.filter(student => student.status === "active"));
+      } else if (activeFilter === "inactive") {
+        setTasks(mockStudents.filter(student => student.status === "inactive"));
+      } else {
+        setTasks(mockStudents);
+      }
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+      toast({
+        variant: "error",
+        title: "Error",
+        description: "Failed to load student data",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [activeFilter, toast]); // Dependencies for the callback
+
+  // Filter change handler
+  const handleFilterChange = (value: string) => {
+    setActiveFilter(value);
+  };
+
+  // Effect to refetch data when filter changes
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
+
+  // Action handlers
+  const handleOpenAddDialog = () => {
+    setAddDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (student: Task) => {
+    setSelectedStudent(student);
+    setEditDialogOpen(true);
+  };
+
+  const handleOpenViewDialog = (student: Task) => {
+    setSelectedStudent(student);
+    setViewDialogOpen(true);
+  };
+
+  const handleOpenDeleteDialog = (student: Task) => {
+    setSelectedStudent(student);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      // Use our centralized service for template download
+      const blobData = await downloadStudentTemplateService();
+      
+      // Create a blob URL and trigger download
+      const url = window.URL.createObjectURL(blobData);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "student_template.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast({
+        title: "Template Downloaded",
+        description: "Student Excel template has been downloaded successfully"
+      });
+    } catch (error) {
+      console.error("Failed to download template:", error);
+      toast({
+        variant: "error", 
+        title: "Download Failed",
+        description: error instanceof Error ? error.message : "Failed to download the template file",
+      });
+    }
+  };
+
+  const handleUploadClick = () => {
+    setUploadDialogOpen(true);
+  };
+
+  // Success callbacks
+  const handleOperationSuccess = () => {
+    fetchStudents();
+  };
 
   return (
-    <>
-      <div className="min-h-screen w-full bg-background">
-        <div className="container mx-auto px-4 py-6 sm:px-2 lg:px-2">
-          <div className="flex flex-col space-y-6">
-            {/* Header Section */}
-            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-2xl">
-                  Students
-                </h2>
-                <p className="text-sm text-muted-foreground sm:text-base">
-                  Here&apos;s a list of your students.
-                </p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Button
-                  size="sm"
-                  className="h-9 px-4"
-                  onClick={() => console.log("Add Task clicked")}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  {"Add Students"}
-                </Button>
-              </div>
-              {/* <div className="flex items-center space-x-4">
-                <UserNav />
-              </div> */}
+    <div className="min-h-screen w-full bg-background">
+      <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex flex-col space-y-6">
+          {/* Header Section */}
+          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                Students
+              </h2>
+              <p className="text-sm text-muted-foreground sm:text-base">
+                Manage your students, classes, and academic details
+              </p>
             </div>
-
-            {/* Table Section */}
-            <div className="rounded-lg border bg-card p-4 shadow-sm">
-              <DataTable
-                data={tasks}
-                columns={columns}
-                statuses={new_statuses}
-                priorities={priorities}
-                AddButtonText="Add Student"
-                AddButtonFun={() => console.log("Add Student clicked")}
-                isAddButtonDisabled={false} // Set to true if you want to disable the button
-              />
+            <div className="flex items-center space-x-2 flex-wrap gap-2">
+              <Button
+                onClick={handleOpenAddDialog}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Student
+              </Button>
+              <Button variant="outline" onClick={handleUploadClick}>
+                <Upload className="mr-2 h-4 w-4" />
+                Bulk Upload
+              </Button>
+              <Button variant="outline" onClick={handleDownloadTemplate}>
+                <Download className="mr-2 h-4 w-4" />
+                Template
+              </Button>
             </div>
           </div>
+
+          {/* Tabs and Table */}
+          <Tabs defaultValue="all" value={activeFilter} onValueChange={handleFilterChange}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="all">All Students</TabsTrigger>
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="inactive">Inactive</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="space-y-4">
+              <Card>
+                <CardContent className="p-0">
+                  {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <DataTable
+                      data={tasks}
+                      columns={columns({
+                        onView: handleOpenViewDialog,
+                        onEdit: handleOpenEditDialog,
+                        onDelete: handleOpenDeleteDialog
+                      })}
+                      statuses={statuses}
+                      priorities={priorities}
+                      AddButtonText="Add Student"
+                      AddButtonFun={handleOpenAddDialog}
+                      isAddButtonDisabled={false}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="active" className="space-y-4">
+              <Card>
+                <CardContent className="p-0">
+                  {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <DataTable
+                      data={tasks.filter(t => t.status === "active")}
+                      columns={columns({
+                        onView: handleOpenViewDialog,
+                        onEdit: handleOpenEditDialog,
+                        onDelete: handleOpenDeleteDialog
+                      })}
+                      statuses={statuses}
+                      priorities={priorities}
+                      AddButtonText="Add Student"
+                      AddButtonFun={handleOpenAddDialog}
+                      isAddButtonDisabled={false}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="inactive" className="space-y-4">
+              <Card>
+                <CardContent className="p-0">
+                  {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <DataTable
+                      data={tasks.filter(t => t.status === "inactive")}
+                      columns={columns({
+                        onView: handleOpenViewDialog,
+                        onEdit: handleOpenEditDialog,
+                        onDelete: handleOpenDeleteDialog
+                      })}
+                      statuses={statuses}
+                      priorities={priorities}
+                      AddButtonText="Add Student"
+                      AddButtonFun={handleOpenAddDialog}
+                      isAddButtonDisabled={false}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
+        
+        {/* Dialog Components */}
+        <StudentRegistrationDialog
+          open={addDialogOpen}
+          onOpenChange={setAddDialogOpen}
+          onSuccess={handleOperationSuccess}
+        />
+        
+        <EditStudentDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          student={selectedStudent}
+          onSuccess={handleOperationSuccess}
+        />
+        
+        <ViewStudentDialog
+          open={viewDialogOpen}
+          onOpenChange={setViewDialogOpen}
+          studentId={selectedStudent?.id || null}
+        />
+        
+        <DeleteStudentDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          studentId={selectedStudent?.id || null}
+          studentName={selectedStudent ? `${selectedStudent.firstName} ${selectedStudent.lastName}` : null}
+          onSuccess={handleOperationSuccess}
+        />
+        
+        <UploadStudentsDialog
+          open={uploadDialogOpen}
+          onOpenChange={setUploadDialogOpen}
+          onSuccess={handleOperationSuccess}
+        />
       </div>
-    </>
+    </div>
   );
 }
