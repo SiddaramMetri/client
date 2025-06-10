@@ -2,12 +2,13 @@
 
 // import { columns } from "@/components/ui/table/columns"
 import { DataTable } from "@/components/ui/table/data-table";
-import { UserNav } from "@/components/ui/table/user-nav";
 // import { taskSchema } from "./data/schema"
-import New_tasks from "./data/tasks.json";
-import { columns } from "./data/columns";
+import { Button } from "@/components/ui/button";
+import { UserPlus } from "lucide-react";
 import { new_statuses } from "../users/data/data";
+import { columns } from "./data/columns";
 import { priorities } from "./data/data";
+import New_tasks from "./data/tasks.json";
 
 // Simulate a database read for tasks.
 // async function getTasks() {
@@ -38,8 +39,18 @@ export default function StudentsPage() {
                 </p>
               </div>
               <div className="flex items-center space-x-4">
-                <UserNav />
+                <Button
+                  size="sm"
+                  className="h-9 px-4"
+                  onClick={() => console.log("Add Task clicked")}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {"Add Students"}
+                </Button>
               </div>
+              {/* <div className="flex items-center space-x-4">
+                <UserNav />
+              </div> */}
             </div>
 
             {/* Table Section */}

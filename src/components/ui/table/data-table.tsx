@@ -25,7 +25,6 @@ import {
 
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
-import { statuses } from "@/pages/students/data/data";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -35,6 +34,7 @@ interface DataTableProps<TData, TValue> {
   AddButtonText?: string;
   AddButtonFun?: () => void;
   isAddButtonDisabled?: boolean;
+  showAddButton?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -45,6 +45,7 @@ export function DataTable<TData, TValue>({
   AddButtonText = "Add",
   AddButtonFun = () => {},
   isAddButtonDisabled = false,
+  showAddButton = false,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -90,6 +91,7 @@ export function DataTable<TData, TValue>({
         statuses={statuses}
         priorities={priorities ?? []}
         isAddButtonDisabled={isAddButtonDisabled}
+        showAddButton={showAddButton}
       />
       <div className="rounded-md border overflow-x-auto">
         <div className="min-w-full inline-block align-middle">

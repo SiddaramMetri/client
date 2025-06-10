@@ -8,6 +8,7 @@ import { Permissions } from "@/constant";
 import { useAuthContext } from "@/context/auth-provider";
 import {
   CheckCircle,
+  GraduationCap,
   LayoutDashboard,
   LucideIcon,
   Settings,
@@ -56,7 +57,11 @@ export function NavMain() {
         },
       ],
     },
-
+    {
+      title: "Classes",
+      url: `/dashboard/classes`,
+      icon: GraduationCap,
+    },
     {
       title: "Tasks",
       url: `/dashboard/tasks`,

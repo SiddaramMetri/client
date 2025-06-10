@@ -14,6 +14,7 @@ interface DataTableToolbarProps<TData> {
   isAddButtonDisabled?: boolean,
   statuses: { label: string; value: string }[],
   priorities?: { label: string; value: string }[]
+  showAddButton?: boolean
 }
 
 export function DataTableToolbar<TData>({
@@ -22,7 +23,8 @@ export function DataTableToolbar<TData>({
   AddButtonFun,
   isAddButtonDisabled,
   statuses,
-  priorities
+  priorities,
+  showAddButton=false
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
 
@@ -67,14 +69,16 @@ export function DataTableToolbar<TData>({
       </div>
       <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
         <DataTableViewOptions table={table} />
-        <Button 
-          size="sm" 
-          className="h-9 px-4"
-          onClick={AddButtonFun}
-          disabled={!isAddButtonDisabled}
-        >
-          {AddButtonText || "Add Task"}
-        </Button>
+       {showAddButton && (
+         <Button
+           size="sm"
+           className="h-9 px-4"
+           onClick={AddButtonFun}
+           disabled={!isAddButtonDisabled}
+         >
+           {AddButtonText || "Add Task"}
+         </Button>
+       )}
       </div>
     </div>
   )

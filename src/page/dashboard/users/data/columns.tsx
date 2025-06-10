@@ -1,10 +1,10 @@
 import { ColumnDef } from "@tanstack/react-table"
-import { Badge } from "@/components/ui/badge"
+
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header"
-import { DataTableRowActions } from "@/components/ui/table/data-table-row-actions"
-import { labels, new_statuses, priorities, ROLES, statuses  } from "./data"
-import {  UsersTask, userSchema  } from "./schema"
+import { new_statuses, ROLES } from "./data"
+import { UsersTask, userSchema } from "./schema"
+import { UserRowActions } from "../components/user-row-actions"
 
 export const columns: ColumnDef<UsersTask>[] = [
   {
@@ -135,6 +135,6 @@ export const columns: ColumnDef<UsersTask>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} labels={labels} schema={userSchema} />,
+    cell: ({ row }) => <UserRowActions row={row} schema={userSchema} />,
   },
 ]

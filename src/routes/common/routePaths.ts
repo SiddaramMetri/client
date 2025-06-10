@@ -12,6 +12,7 @@ export const PROTECTED_ROUTES = {
   WORKSPACE: "/dashboard",
   USERS: "/dashboard/users",
   STUDENTS: "/dashboard/students",
+  CLASSES: "/dashboard/classes",
   TASKS: "/dashboard/tasks",
   MEMBERS: "/dashboard/members",
   SETTINGS: "/dashboard/settings",
