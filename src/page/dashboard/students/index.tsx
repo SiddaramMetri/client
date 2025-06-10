@@ -25,7 +25,7 @@ export default function StudentsPage() {
   return (
     <>
       <div className="min-h-screen w-full bg-background">
-        <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4 py-6 sm:px-2 lg:px-2">
           <div className="flex flex-col space-y-6">
             {/* Header Section */}
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">

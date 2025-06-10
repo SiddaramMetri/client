@@ -1,7 +1,5 @@
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import GoogleOauthButton from "@/components/auth/google-oauth-button";
+import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,12 +17,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import Logo from "@/components/logo";
-import GoogleOauthButton from "@/components/auth/google-oauth-button";
-import { useMutation } from "@tanstack/react-query";
-import { loginMutationFn } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+import { loginMutationFn } from "@/lib/api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { z } from "zod";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -80,7 +80,7 @@ const SignIn = () => {
           className="flex items-center gap-2 self-center font-medium"
         >
           <Logo />
-          Team Sync.
+          CMSync.
         </Link>
         <div className="flex flex-col gap-6">
           <Card>
@@ -113,11 +113,7 @@ const SignIn = () => {
                                 Email
                               </FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="m@example.com"
-                                  className="!h-[48px]"
-                                  {...field}
-                                />
+                                <Input placeholder="m@example.com" {...field} />
                               </FormControl>
 
                               <FormMessage />
@@ -135,22 +131,20 @@ const SignIn = () => {
                                 <FormLabel className="dark:text-[#f1f7feb5] text-sm">
                                   Password
                                 </FormLabel>
-                                <a
-                                  href="#"
-                                  className="ml-auto text-sm underline-offset-4 hover:underline"
-                                >
-                                  Forgot your password?
-                                </a>
                               </div>
                               <FormControl>
-                                <Input
-                                  type="password"
-                                  className="!h-[48px]"
-                                  {...field}
-                                />
+                                <Input type="password" {...field} />
                               </FormControl>
 
                               <FormMessage />
+                             <div className="flex justify-end">
+                             <a
+                                href="#"
+                                className="ml-auto text-sm underline-offset-4 hover:underline"
+                              >
+                                Forgot your password?
+                              </a>
+                             </div>
                             </FormItem>
                           )}
                         />
@@ -163,15 +157,6 @@ const SignIn = () => {
                         {isPending && <Loader className="animate-spin" />}
                         Login
                       </Button>
-                    </div>
-                    <div className="text-center text-sm">
-                      Don&apos;t have an account?{" "}
-                      <Link
-                        to="/sign-up"
-                        className="underline underline-offset-4"
-                      >
-                        Sign up
-                      </Link>
                     </div>
                   </div>
                 </form>

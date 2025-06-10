@@ -3,8 +3,7 @@ import { Plus } from "lucide-react";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { Button } from "@/components/ui/button";
 import useCreateProjectDialog from "@/hooks/use-create-project-dialog";
-import StudentsPage from "../students";
-import { SectionCards } from "@/components/section-cards";
+import StudentsPage from "@/page/dashboard/students";
 
 const WorkspaceDashboard = () => {
   const { onOpen } = useCreateProjectDialog();
@@ -24,16 +23,10 @@ const WorkspaceDashboard = () => {
           New Project
         </Button>
       </div>
-      <div className="flex flex-row gap-4">
-        <SectionCards />
-      </div>
-      <div className="px-4 lg:px-6">
+      <div className="px-2 lg:px-2">
         <ChartAreaInteractive />
-      </div>
-      {/* <WorkspaceAnalytics /> */}
-      <div className="mt-4">
+      
         <StudentsPage />
-        {/* <DataTable data={data} /> */}
       </div>
     </main>
   );

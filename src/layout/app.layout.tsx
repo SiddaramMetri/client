@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import CreateWorkspaceDialog from "@/components/workspace/create-workspace-dialog";
 import CreateProjectDialog from "@/components/workspace/project/create-project-dialog";
 import { AuthProvider } from "@/context/auth-provider";
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 
 const AppLayout = () => {
@@ -17,9 +18,13 @@ const AppLayout = () => {
               <div className="sticky top-0 z-10 bg-background rounded-lg">
                 <Header />
               </div>
-              <div className="px-3 lg:px-20 py-3">
-                <Outlet />
+              <div className="flex flex-1 flex-col">
+              <div className="@container/main flex flex-1 flex-col gap-2 px-4">
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Outlet />
+                </Suspense>
               </div>
+            </div>
               <CreateWorkspaceDialog />
               <CreateProjectDialog />
             </div>

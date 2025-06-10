@@ -58,53 +58,6 @@ const LoginPage = () => {
 
   return (
     <section className="flex justify-center items-center h-screen">
-      {/* <Card className="w-full max-w-sm">
-                <CardHeader>
-                    <CardTitle className="text-2xl">Login</CardTitle>
-                    <CardDescription>
-                        Enter your email below to login to your account. <br />
-                        {mutation.isError && (
-                            <span className="text-red-500 text-sm">{'Something went wrong'}</span>
-                        )}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            ref={emailRef}
-                            id="email"
-                            type="email"
-                            placeholder="m@example.com"
-                            required
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input ref={passwordRef} id="password" type="password" required />
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <div className="w-full">
-                        <Button
-                            onClick={handleLoginSubmit}
-                            className="w-full"
-                            disabled={mutation.isPending}>
-                            {mutation.isPending && <LoaderCircle className="animate-spin" />}
-
-                            <span className="ml-2">Sign in</span>
-                        </Button>
-
-                        <div className="mt-4 text-center text-sm">
-                            Don't have an account?{' '}
-                            <Link to={'/auth/register'} className="underline">
-                                Sign up
-                            </Link>
-                        </div>
-                    </div>
-                </CardFooter>
-          </Card> */}
-
       <Card className="w-full max-w-md shadow-material-lg">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
@@ -121,34 +74,7 @@ const LoginPage = () => {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Success Message */}
-          {/* {success && (
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                {success}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {loading && (
-            <Alert className="border-blue-200 bg-blue-50">
-              <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
-              <AlertDescription className="text-blue-800">
-                Authenticating...
-              </AlertDescription>
-            </Alert>
-          )} */}
-
+  
           {/* Google Login Button */}
           <Button
             onClick={() => handleOAuth("google")}
