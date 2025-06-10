@@ -25,18 +25,17 @@ const DeleteWorkspaceCard = () => {
 
   const handleConfirm = () => {
     mutate(workspaceId, {
-      onSuccess: (data) => {
+      onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ["userWorkspaces"],
         });
-        navigate(`/workspace/${data.currentWorkspace}`);
+        navigate(`/dashboard`);
         setTimeout(() => onCloseDialog(), 100);
       },
       onError: (error) => {
         toast({
           title: "Error",
           description: error.message,
-          variant: "destructive",
         });
       },
     });

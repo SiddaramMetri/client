@@ -10,6 +10,8 @@ export const AUTH_ROUTES = {
 
 export const PROTECTED_ROUTES = {
   WORKSPACE: "/dashboard",
+  USERS: "/dashboard/users",
+  STUDENTS: "/dashboard/students",
   TASKS: "/dashboard/tasks",
   MEMBERS: "/dashboard/members",
   SETTINGS: "/dashboard/settings",

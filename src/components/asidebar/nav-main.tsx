@@ -19,6 +19,7 @@ type ItemType = {
   title: string;
   url: string;
   icon: LucideIcon;
+  children?: ItemType[];
 };
 
 export function NavMain() {
@@ -38,6 +39,24 @@ export function NavMain() {
       url: `/dashboard`,
       icon: LayoutDashboard,
     },
+    {
+      title: "Users",
+      url: `/dashboard/users`,
+      icon: Users,
+    },
+    {
+      title: "Students",
+      url: `/dashboard/students`,
+      icon: Users,
+      children: [
+        {
+          title: "Students",
+          url: `/dashboard/students`,
+          icon: Users,
+        },
+      ],
+    },
+
     {
       title: "Tasks",
       url: `/dashboard/tasks`,

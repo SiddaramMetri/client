@@ -16,7 +16,7 @@ const withPermission = (
 
     useEffect(() => {
       if (!user || !hasPermission(requiredPermission)) {
-        navigate(`/workspace/${workspaceId}`);
+        navigate(`/dashboard`);
       }
     }, [user, hasPermission, navigate, workspaceId]);
 

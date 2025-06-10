@@ -54,14 +54,14 @@ export function WorkspaceSwitcher() {
 
       if (workspace) {
         setActiveWorkspace(workspace);
-        if (!workspaceId) navigate(`/workspace/${workspace._id}`);
+        if (!workspaceId) navigate(`/dashboard`);
       }
     }
   }, [workspaceId, workspaces, navigate]);
 
   const onSelect = (workspace: WorkspaceType) => {
     setActiveWorkspace(workspace);
-    navigate(`/workspace/${workspace._id}`);
+    navigate(`/dashboard`);
   };
 
   return (

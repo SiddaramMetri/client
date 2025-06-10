@@ -60,13 +60,12 @@ const SignIn = () => {
         const user = data.user;
         console.log(user);
         const decodedUrl = returnUrl ? decodeURIComponent(returnUrl) : null;
-        navigate(decodedUrl || `/workspace/${user.currentWorkspace}`);
+        navigate(decodedUrl || `/dashboard`);
       },
       onError: (error) => {
         toast({
           title: "Error",
           description: error.message,
-          variant: "destructive",
         });
       },
     });

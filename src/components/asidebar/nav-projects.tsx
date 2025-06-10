@@ -56,14 +56,13 @@ export function NavProjects() {
             variant: "success",
           });
 
-          navigate(`/workspace/${workspaceId}`);
+          navigate(`/dashboard`);
           setTimeout(() => onCloseDialog(), 100);
         },
         onError: (error) => {
           toast({
             title: "Error",
             description: error.message,
-            variant: "destructive",
           });
         },
       }
