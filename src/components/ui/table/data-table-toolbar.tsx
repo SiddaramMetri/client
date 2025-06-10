@@ -1,5 +1,5 @@
 import { Table } from "@tanstack/react-table"
-import { X } from "lucide-react"
+import { Search, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,8 @@ interface DataTableToolbarProps<TData> {
   showAddButton?: boolean
   searchColumn?: string
   searchPlaceholder?: string
+  search: string
+  handleSearchChange: (value: string) => void
 }
 
 export function DataTableToolbar<TData>({
@@ -28,21 +30,24 @@ export function DataTableToolbar<TData>({
   priorities,
   showAddButton=false,
   searchColumn = "title",
-  searchPlaceholder = "Filter..."
+  searchPlaceholder = "Filter...",
+  search,
+  handleSearchChange
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 w-full sm:w-auto">
-        <Input
-          placeholder={searchPlaceholder}
-          value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn(searchColumn)?.setFilterValue(event.target.value)
-          }
-          className="h-9 w-full sm:w-[150px] lg:w-[250px]"
-        />
+      <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 transform -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         <div className="flex flex-wrap gap-2">
           {table.getColumn("status") && (
             <DataTableFacetedFilter

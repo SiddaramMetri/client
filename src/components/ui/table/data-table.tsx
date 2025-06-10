@@ -45,6 +45,9 @@ interface DataTableProps<TData, TValue> {
   onPageSizeChange?: (pageSize: number) => void;
   totalSize?: number;
   onTotalSizeChange?: (totalSize: number) => void;
+  totalCount?: number;
+  search: string;
+  handleSearchChange: (value: string) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -64,7 +67,12 @@ export function DataTable<TData, TValue>({
   onPageChange,
   pageSize: externalPageSize,
   onPageSizeChange,
+  totalCount,
+  search,
+  handleSearchChange,
 }: DataTableProps<TData, TValue>) {
+
+  console.log("data =====", data);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -137,6 +145,8 @@ export function DataTable<TData, TValue>({
         showAddButton={showAddButton}
         searchColumn={searchColumn}
         searchPlaceholder={searchPlaceholder}
+        search={search}
+        handleSearchChange={handleSearchChange}
       />
       <div className="rounded-md border overflow-x-auto">
         <div className="min-w-full inline-block align-middle">
@@ -201,7 +211,7 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
       <div className="mt-4">
-        <DataTablePagination table={table} />
+        <DataTablePagination table={table} totalCount={totalCount} />
       </div>
     </div>
   );

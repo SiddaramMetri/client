@@ -246,15 +246,7 @@ export default function UsersPage() {
             <CardContent className="p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-1 items-center space-x-2">
-                  <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 transform -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="Search users..."
-                      value={search}
-                      onChange={(e) => handleSearchChange(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                  
                   <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Status" />
@@ -299,7 +291,16 @@ export default function UsersPage() {
                 <DataTable 
                   data={users as unknown as User[]} 
                   columns={columns}
-                  statuses={[]}
+                  statuses={[{
+                    label: "All Users",
+                    value: "all"
+                  }, {
+                    label: "Active",
+                    value: "active"
+                  }, {
+                    label: "Inactive",
+                    value: "inactive"
+                  }]}
                   searchColumn="name"
                   searchPlaceholder="Search users..."
                   // Add pagination props if your DataTable supports it
@@ -308,6 +309,9 @@ export default function UsersPage() {
                   onPageChange={setPage}
                   pageSize={limit}
                   onPageSizeChange={setLimit}
+                  totalCount={total}
+                  search={search}
+                  handleSearchChange={handleSearchChange}
                 />
               )}
             </CardContent>
