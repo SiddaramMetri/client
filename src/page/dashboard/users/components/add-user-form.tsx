@@ -1,274 +1,234 @@
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Loader } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import React from 'react';
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ROLES, new_statuses } from "../data/data";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2, User } from "lucide-react";
+import { createUserFormSchema, CreateUserFormData } from "../data/schema";
+import { createUser } from "@/services/user.service";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
-export default function AddUserForm({ onClose }: { onClose: () => void }) {
-  const formSchema = z.object({
-    name: z.string().trim().min(1, {
-      message: "Name is required",
-    }),
-    email: z.string().email({
-      message: "Please enter a valid email address",
-    }),
-    mobile: z.string().trim().min(1, {
-      message: "Mobile number is required",
-    }),
-    role: z.string().trim().min(1, {
-      message: "Role is required",
-    }),
-    status: z.string().trim().min(1, {
-      message: "Status is required",
-    }),
-  });
+interface AddUserFormProps {
+  onClose: () => void;
+}
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+export default function AddUserForm({ onClose }: AddUserFormProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const form = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserFormSchema),
     defaultValues: {
       name: "",
       email: "",
-      mobile: "",
-      role: "",
-      status: "active",
+      password: "",
+      profilePicture: "",
+      isActive: true,
     },
   });
 
-  const isPending = false; // Replace with actual mutation loading state
-
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log("Form values:", values);
-    // Here you would add your API call to create a new user
-    // Add a mutation function to handle the API call
-    
-    // Example:
-    // mutate(values, {
-    //   onSuccess: () => {
-    //     toast({
-    //       title: "Success",
-    //       description: "User created successfully",
-    //       variant: "success",
-    //     });
-    //     onClose();
-    //   },
-    //   onError: (error) => {
-    //     toast({
-    //       title: "Error",
-    //       description: error.message,
-    //       variant: "destructive",
-    //     });
-    //   },
-    // });
-    
-    // For now just close the modal
-    setTimeout(() => {
+  const createUserMutation = useMutation({
+    mutationFn: createUser,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user-stats'] });
       onClose();
-    }, 500);
+      form.reset();
+      toast({
+        title: "User Created",
+        description: `${data.name} has been successfully created.`,
+      });
+    },
+    onError: (error: any) => {
+      console.error('Create user error:', error);
+      const errorMessage = error.response?.data?.message || "Failed to create user";
+      const errorCode = error.response?.data?.errorCode;
+      
+      // Handle specific error cases
+      let title = "Error";
+      let description = errorMessage;
+      
+      if (errorCode === "AUTH_EMAIL_ALREADY_EXISTS" || 
+          (errorCode === "VALIDATION_ERROR" && errorMessage.includes("email already exists"))) {
+        title = "Email Already Exists";
+        description = "A user with this email address already exists. Please use a different email.";
+        // Highlight the email field
+        form.setError("email", {
+          type: "manual",
+          message: "This email is already registered"
+        });
+      }
+      
+      toast({
+        variant: "destructive",
+        title,
+        description,
+      });
+    },
+  });
+
+  const onSubmit = (data: CreateUserFormData) => {
+    // Remove empty fields
+    const cleanData = {
+      ...data,
+      profilePicture: data.profilePicture || undefined,
+      password: data.password || undefined,
+    };
+    createUserMutation.mutate(cleanData);
+  };
+
+  const handleClose = () => {
+    if (!createUserMutation.isPending) {
+      onClose();
+      form.reset();
+    }
   };
 
   return (
     <div className="w-full h-auto max-w-full">
       <div className="h-full">
         <div className="mb-5 pb-2 border-b">
-          <h1
-            className="text-xl tracking-[-0.16px] dark:text-[#fcfdffef] font-semibold mb-1
-           text-center sm:text-left"
-          >
+          <h1 className="text-xl tracking-[-0.16px] dark:text-[#fcfdffef] font-semibold mb-1 text-center sm:text-left">
             Add New User
           </h1>
           <p className="text-muted-foreground text-sm leading-tight">
-            Create a new user account and assign roles and permissions
+            Create a new user account with email and profile information
           </p>
         </div>
+        
         <Form {...form}>
-          <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
-            {/* Name */}
-            <div>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="dark:text-[#f1f7feb5] text-sm">
-                      Full Name
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="John Doe"
-                        className="!h-[48px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="dark:text-[#f1f7feb5] text-sm">
-                      Email Address
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="john.doe@example.com"
-                        className="!h-[48px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Mobile */}
-            <div>
-              <FormField
-                control={form.control}
-                name="mobile"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="dark:text-[#f1f7feb5] text-sm">
-                      Mobile Number
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="123-456-7890"
-                        className="!h-[48px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Role */}
-            <div>
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="!h-[48px]">
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <div className="w-full max-h-[200px] overflow-y-auto">
-                          {ROLES.map((role) => (
-                            <SelectItem
-                              key={role.value}
-                              className="!capitalize cursor-pointer"
-                              value={role.value}
-                            >
-                              <div className="flex items-center gap-2">
-                                {role.icon && (
-                                  <role.icon className="text-muted-foreground size-4" />
-                                )}
-                                <span>{role.label}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </div>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Status */}
-            <div>
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="!h-[48px]">
-                          <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <div className="w-full max-h-[200px] overflow-y-auto">
-                          {new_statuses.map((status) => (
-                            <SelectItem
-                              key={status.value}
-                              className="!capitalize cursor-pointer"
-                              value={status.value}
-                            >
-                              <div className="flex items-center gap-2">
-                                {status.icon && (
-                                  <status.icon className={`size-4 ${status.color}`} />
-                                )}
-                                <span>{status.label}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </div>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="dark:text-[#f1f7feb5] text-sm">Full Name *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter full name" 
+                      className="!h-[48px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="dark:text-[#f1f7feb5] text-sm">Email Address *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="email" 
+                      placeholder="Enter email address" 
+                      className="!h-[48px]"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        // Clear email error when user starts typing
+                        if (form.formState.errors.email) {
+                          form.clearErrors("email");
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="dark:text-[#f1f7feb5] text-sm">Password</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="password" 
+                      placeholder="Enter password (optional)" 
+                      className="!h-[48px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Leave empty to generate a random password
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="profilePicture"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="dark:text-[#f1f7feb5] text-sm">Profile Picture URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="url" 
+                      placeholder="https://example.com/avatar.jpg" 
+                      className="!h-[48px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Optional URL to the user's profile picture
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="isActive"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel className="dark:text-[#f1f7feb5] text-sm">Active Status</FormLabel>
+                    <FormDescription>
+                      Whether the user account should be active immediately
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end gap-2 pt-4">
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={onClose}
+                onClick={handleClose}
+                disabled={createUserMutation.isPending}
                 className="!h-[48px]"
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={isPending}
-                className="!h-[48px]"
+                disabled={createUserMutation.isPending}
+                className="min-w-[100px] !h-[48px]"
               >
-                {isPending ? (
+                {createUserMutation.isPending ? (
                   <>
-                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating...
                   </>
                 ) : (

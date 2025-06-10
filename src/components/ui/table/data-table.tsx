@@ -35,6 +35,16 @@ interface DataTableProps<TData, TValue> {
   AddButtonFun?: () => void;
   isAddButtonDisabled?: boolean;
   showAddButton?: boolean;
+  searchColumn?: string;
+  searchPlaceholder?: string;
+  // Server-side pagination props
+  pageCount?: number;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
+  pageSize?: number;
+  onPageSizeChange?: (pageSize: number) => void;
+  totalSize?: number;
+  onTotalSizeChange?: (totalSize: number) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +56,14 @@ export function DataTable<TData, TValue>({
   AddButtonFun = () => {},
   isAddButtonDisabled = false,
   showAddButton = false,
+  searchColumn = "name",
+  searchPlaceholder = "Search...",
+  // Server-side pagination props
+  pageCount,
+  currentPage,
+  onPageChange,
+  pageSize: externalPageSize,
+  onPageSizeChange,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -55,6 +73,10 @@ export function DataTable<TData, TValue>({
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
+  // Determine if server-side pagination is being used
+  const isServerSide = Boolean(pageCount && currentPage !== undefined && onPageChange);
+  const defaultPageSize = externalPageSize || 10;
+
   const table = useReactTable({
     data,
     columns,
@@ -63,17 +85,38 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
+      ...(isServerSide && {
+        pagination: {
+          pageIndex: (currentPage || 1) - 1, // Convert 1-based to 0-based
+          pageSize: defaultPageSize,
+        },
+      }),
     },
     initialState: {
       pagination: {
-        pageSize: 25,
+        pageSize: defaultPageSize,
+        pageIndex: 0,
       },
     },
+    pageCount: isServerSide ? pageCount : undefined,
+    manualPagination: isServerSide,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onPaginationChange: isServerSide 
+      ? (updater) => {
+          if (typeof updater === 'function') {
+            const newPagination = updater({
+              pageIndex: (currentPage || 1) - 1,
+              pageSize: defaultPageSize,
+            });
+            onPageChange?.(newPagination.pageIndex + 1); // Convert back to 1-based
+            onPageSizeChange?.(newPagination.pageSize);
+          }
+        }
+      : undefined,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -92,6 +135,8 @@ export function DataTable<TData, TValue>({
         priorities={priorities ?? []}
         isAddButtonDisabled={isAddButtonDisabled}
         showAddButton={showAddButton}
+        searchColumn={searchColumn}
+        searchPlaceholder={searchPlaceholder}
       />
       <div className="rounded-md border overflow-x-auto">
         <div className="min-w-full inline-block align-middle">

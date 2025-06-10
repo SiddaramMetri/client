@@ -2,7 +2,7 @@ import {
   SidebarGroup,
 } from "@/components/ui/sidebar";
 import useGetProjectsInWorkspaceQuery from "@/hooks/api/use-get-projects";
-import useConfirmDialog from "@/hooks/use-confirm-dialog";
+import useLegacyConfirmDialog from "@/hooks/use-confirm-dialog";
 import { toast } from "@/hooks/use-toast";
 import useWorkspaceId from "@/hooks/use-workspace-id";
 import { deleteProjectMutationFn } from "@/lib/api";
@@ -18,7 +18,7 @@ export function NavProjects() {
   const queryClient = useQueryClient();
   const workspaceId = useWorkspaceId();
 
-  const { context, open, onOpenDialog, onCloseDialog } = useConfirmDialog();
+  const { context, open, onOpenDialog, onCloseDialog } = useLegacyConfirmDialog();
 
   const [pageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(5);

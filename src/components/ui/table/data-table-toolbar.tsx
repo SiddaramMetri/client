@@ -15,6 +15,8 @@ interface DataTableToolbarProps<TData> {
   statuses: { label: string; value: string }[],
   priorities?: { label: string; value: string }[]
   showAddButton?: boolean
+  searchColumn?: string
+  searchPlaceholder?: string
 }
 
 export function DataTableToolbar<TData>({
@@ -24,7 +26,9 @@ export function DataTableToolbar<TData>({
   isAddButtonDisabled,
   statuses,
   priorities,
-  showAddButton=false
+  showAddButton=false,
+  searchColumn = "title",
+  searchPlaceholder = "Filter..."
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
 
@@ -32,10 +36,10 @@ export function DataTableToolbar<TData>({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 w-full sm:w-auto">
         <Input
-          placeholder="Filter tasks..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          placeholder={searchPlaceholder}
+          value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
+            table.getColumn(searchColumn)?.setFilterValue(event.target.value)
           }
           className="h-9 w-full sm:w-[150px] lg:w-[250px]"
         />

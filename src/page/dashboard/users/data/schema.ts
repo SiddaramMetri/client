@@ -1,16 +1,51 @@
 import { z } from "zod"
 
-// We're keeping a simple non-relational schema here.
-// IRL, you will have a schema for your data models.
+// User schema for data table
 export const userSchema = z.object({
-  id: z.number(),
+  _id: z.string(),
   name: z.string(),
-  email: z.string(),
-  mobile: z.string(),
-  role: z.string(),
-  status: z.string(),
-  isVerified: z.boolean(),
-  lastLogin: z.string(),
+  email: z.string().email(),
+  profilePicture: z.string().nullable().optional(),
+  isActive: z.boolean(),
+  lastLogin: z.string().nullable().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  currentWorkspace: z.object({
+    _id: z.string(),
+    name: z.string()
+  }).nullable().optional()
 })
 
-export type UsersTask = z.infer<typeof userSchema>
+export type User = z.infer<typeof userSchema>
+
+// Form validation schemas
+export const createUserFormSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name must be less than 50 characters"),
+  email: z.string().email("Invalid email format"),
+  password: z.union([
+    z.string().min(6, "Password must be at least 6 characters"),
+    z.literal("")
+  ]).optional(),
+  profilePicture: z.string().url("Invalid URL format").optional().or(z.literal("")),
+  isActive: z.boolean().default(true)
+})
+
+export const updateUserFormSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name must be less than 50 characters"),
+  email: z.string().email("Invalid email format"),
+  profilePicture: z.string().url("Invalid URL format").optional().or(z.literal("")),
+  isActive: z.boolean()
+})
+
+export type CreateUserFormData = z.infer<typeof createUserFormSchema>
+export type UpdateUserFormData = z.infer<typeof updateUserFormSchema>
+
+// Table filtering schema
+export const userFilterSchema = z.object({
+  search: z.string().optional(),
+  status: z.enum(['all', 'active', 'inactive']).optional(),
+  sortBy: z.enum(['name', 'email', 'createdAt', 'updatedAt', 'lastLogin']).optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional()
+})
+
+export type UserFilterData = z.infer<typeof userFilterSchema>

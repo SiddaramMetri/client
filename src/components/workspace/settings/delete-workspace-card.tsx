@@ -3,7 +3,7 @@ import PermissionsGuard from "@/components/resuable/permission-guard";
 import { Button } from "@/components/ui/button";
 import { Permissions } from "@/constant";
 import { useAuthContext } from "@/context/auth-provider";
-import useConfirmDialog from "@/hooks/use-confirm-dialog";
+import useLegacyConfirmDialog from "@/hooks/use-confirm-dialog";
 import { toast } from "@/hooks/use-toast";
 import useWorkspaceId from "@/hooks/use-workspace-id";
 import { deleteWorkspaceMutationFn } from "@/lib/api";
@@ -17,7 +17,7 @@ const DeleteWorkspaceCard = () => {
   const queryClient = useQueryClient();
   const workspaceId = useWorkspaceId();
 
-  const { open, onOpenDialog, onCloseDialog } = useConfirmDialog();
+  const { open, onOpenDialog, onCloseDialog } = useLegacyConfirmDialog();
 
   const { mutate, isPending } = useMutation({
     mutationFn: deleteWorkspaceMutationFn,

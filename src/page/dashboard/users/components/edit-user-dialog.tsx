@@ -8,7 +8,7 @@ const EditUserDialog = () => {
   return (
     <Dialog modal={true} open={isEditOpen} onOpenChange={onCloseEdit}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto border-0">
-        {currentUser && <EditUserForm user={currentUser} onClose={onCloseEdit} />}
+        <EditUserForm user={currentUser} onClose={onCloseEdit} />
       </DialogContent>
     </Dialog>
   );

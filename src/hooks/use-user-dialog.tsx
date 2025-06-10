@@ -1,15 +1,16 @@
 import { create } from "zustand";
+import { User } from "@/page/dashboard/users/data/schema";
 
 interface UserDialogStore {
   isAddOpen: boolean;
   isEditOpen: boolean;
   isDeleteOpen: boolean;
-  currentUser: any | null;
+  currentUser: User | null;
   onOpenAdd: () => void;
   onCloseAdd: () => void;
-  onOpenEdit: (user: any) => void;
+  onOpenEdit: (user: User) => void;
   onCloseEdit: () => void;
-  onOpenDelete: (user: any) => void;
+  onOpenDelete: (user: User) => void;
   onCloseDelete: () => void;
 }
 
