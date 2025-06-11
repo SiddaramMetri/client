@@ -29,6 +29,7 @@ import AddUserDialog from "./components/add-user-dialog";
 import EditUserDialog from "./components/edit-user-dialog";
 import { createColumns } from "./data/columns";
 import { User } from "./data/schema";
+import CompactStatsCards from "./components/compact-stats-cards";
 
 export default function UsersPage() {
   // State for filtering and pagination
@@ -207,49 +208,11 @@ export default function UsersPage() {
             </Button>
           </div>
         </div>
+
         <div>
-          {stats && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle className="text-sm font-medium">
-                    Total Users
-                  </CardTitle>
-                  <Users className="text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Active Users
-                  </CardTitle>
-                  <UserCheck className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    {stats.activeUsers}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Inactive Users
-                  </CardTitle>
-                  <UserX className="h-4 w-4 text-red-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">
-                    {stats.inactiveUsers}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          <CompactStatsCards statsData={stats} />
         </div>
+
         <div>
           {isLoading ? (
             <div className="flex items-center justify-center py-20">

@@ -27,7 +27,7 @@ export function DataTableToolbar<TData>({
   AddButtonFun,
   isAddButtonDisabled,
   statuses,
-  priorities,
+  priorities = [],
   showAddButton=false,
   searchColumn = "name",
   searchPlaceholder = "Filter...",
@@ -57,13 +57,13 @@ export function DataTableToolbar<TData>({
               options={statuses}
             />
           )}
-          {(table.getColumn("priority") && priorities) && (
+          {/* {(table.getColumn("priority") && priorities.length > 0) && (
             <DataTableFacetedFilter
               column={table.getColumn("priority")}
               title="Priority"
               options={priorities || []}
             />
-          )}
+          )} */}
           {isFiltered && (
             <Button
               variant="ghost"

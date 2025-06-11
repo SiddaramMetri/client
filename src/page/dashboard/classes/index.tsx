@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/table/data-table";
-import { toast } from "@/hooks/use-toast";
-import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useClassDialog } from "@/hooks/use-class-dialog";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { toast } from "@/hooks/use-toast";
 import { classService } from "@/services/class.service";
 import {
   keepPreviousData,
@@ -13,19 +12,16 @@ import {
 } from "@tanstack/react-query";
 import {
   Loader2,
-  RefreshCw,
-  BookOpen,
-  Users,
-  GraduationCap,
-  TrendingUp,
   Plus,
+  RefreshCw
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AddClassDialog from "./components/add-class-dialog";
+import CompactStatsCards from "./components/compact-stats-cards";
 import EditClassDialog from "./components/edit-class-dialog";
 import ViewClassDialog from "./components/view-class-dialog";
 import { createColumns } from "./data/columns";
-import { Class } from "./data/schema";
+import { ClassData } from "./data/schema";
 
 export default function ClassesPage() {
   // State for filtering and pagination
@@ -85,15 +81,15 @@ export default function ClassesPage() {
   });
 
   // Action handlers
-  const handleView = (classData: Class) => {
+  const handleView = (classData: ClassData) => {
     onOpenView(classData);
   };
 
-  const handleEdit = (classData: Class) => {
+  const handleEdit = (classData: ClassData) => {
     onOpenEdit(classData);
   };
 
-  const handleDelete = async (classData: Class) => {
+  const handleDelete = async (classData: ClassData) => {
     const confirmed = await confirm({
       title: "Delete Class",
       description: `Are you sure you want to delete "${classData.name}"? This action will deactivate the class and it can be reactivated later.`,
@@ -169,71 +165,8 @@ export default function ClassesPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div>
-          {statsData && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Classes
-                  </CardTitle>
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{statsData.totalClasses}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {statsData.activeClasses} active, {statsData.inactiveClasses} inactive
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Students
-                  </CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{statsData.totalStudents}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Out of {statsData.totalCapacity} capacity
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Average Class Size
-                  </CardTitle>
-                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{Math.round(statsData.averageClassSize)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Students per class
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Utilization
-                  </CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{statsData.utilizationPercentage}%</div>
-                  <p className="text-xs text-muted-foreground">
-                    Capacity utilization
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          <CompactStatsCards statsData={statsData} />
         </div>
 
         {/* Classes Table */}
