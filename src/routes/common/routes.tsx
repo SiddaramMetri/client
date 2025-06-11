@@ -10,8 +10,7 @@ import InviteUser from "@/page/invite/InviteUser";
 import Dashboard from "@/page/workspace/Dashboard";
 import UsersPage from "@/page/dashboard/users";
 import StudentsPage from "@/page/dashboard/students";
-import ClassesPage from "@/page/dashboard/classes/index_new";
-import AttendancePage from "@/page/dashboard/attendance";
+import ClassesPage from "@/page/dashboard/classes";
 import EnhancedAttendancePage from "@/page/dashboard/attendance/enhanced-attendance-page";
 
 export const authenticationRoutePaths = [

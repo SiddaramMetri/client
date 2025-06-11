@@ -29,7 +29,7 @@ export function DataTableToolbar<TData>({
   statuses,
   priorities,
   showAddButton=false,
-  searchColumn = "title",
+  searchColumn = "name",
   searchPlaceholder = "Filter...",
   search,
   handleSearchChange
@@ -42,8 +42,9 @@ export function DataTableToolbar<TData>({
       <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 transform -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search users..."
+            placeholder={searchPlaceholder}
             value={search}
+            name={searchColumn}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10"
           />

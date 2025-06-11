@@ -12,6 +12,7 @@ import AttendanceActionsModal from "./components/attendance-actions-modal";
 import AttendanceHelpGuide from "./components/attendance-help-guide";
 import AccessibilityHelp from "./components/accessibility-help";
 import { syncAttendanceData } from "./utils/attendance-utils";
+import { AcademicYearDropdown } from "@/components/form/academic-year-dropdown";
 
 // Define Student type
 interface Student {
@@ -32,6 +33,7 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
   const [viewType, setViewType] = useState<'table' | 'grid'>('table');
   const [students, setStudents] = useState<Student[]>([]);
   const [saveInProgress, setSaveInProgress] = useState(false);
@@ -58,10 +60,10 @@ export default function AttendancePage() {
     });
   };
 
-  // Fetch students for selected class
+  // Fetch students for selected class and academic year
   useEffect(() => {
     const fetchStudentsForClass = async () => {
-      if (!selectedClass) {
+      if (!selectedClass || !selectedAcademicYear) {
         setStudents([]);
         return;
       }
@@ -129,7 +131,7 @@ export default function AttendancePage() {
 
     fetchStudentsForClass();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClass]);
+  }, [selectedClass, selectedAcademicYear]);
 
   const handleToggleAttendance = (studentId: string, newStatus: 'present' | 'absent' | 'leave') => {
     const updatedStudents = students.map(student => {
@@ -250,9 +252,24 @@ export default function AttendancePage() {
         {/* Filters & Actions Row */}
         <Card>
           <CardContent className="p-4 sm:p-6">
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 items-center">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 items-center">
               <div className="col-span-1">
-                <ClassSelector onClassChange={handleClassChange} />
+                <div className="flex flex-col space-y-1">
+                  <label className="text-sm font-medium">Academic Year</label>
+                  <AcademicYearDropdown
+                    value={selectedAcademicYear}
+                    onChange={setSelectedAcademicYear}
+                    placeholder="Select academic year"
+                    autoSelectSingle={true}
+                  />
+                </div>
+              </div>
+              <div className="col-span-1">
+                <ClassSelector 
+                  onClassChange={handleClassChange}
+                  academicYearId={selectedAcademicYear}
+                  value={selectedClass || undefined}
+                />
               </div>
               <div className="col-span-1">
                 <DatePicker date={selectedDate} onDateChange={handleDateChange} />
@@ -261,7 +278,7 @@ export default function AttendancePage() {
               <div className="col-span-1 flex justify-end">
                 <Button
                   onClick={handleSaveAttendance}
-                  disabled={!selectedClass || loading || saveInProgress}
+                  disabled={!selectedClass || !selectedAcademicYear || loading || saveInProgress}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
                 >
                   {saveInProgress ? (
@@ -337,12 +354,17 @@ export default function AttendancePage() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
                 <p className="text-muted-foreground">Loading student data...</p>
               </div>
-            ) : !selectedClass ? (
+            ) : !selectedAcademicYear || !selectedClass ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">No Class Selected</h3>
+                <h3 className="text-lg font-medium">
+                  {!selectedAcademicYear ? 'No Academic Year Selected' : 'No Class Selected'}
+                </h3>
                 <p className="text-muted-foreground text-center mt-2">
-                  Please select a class to mark attendance
+                  {!selectedAcademicYear 
+                    ? 'Please select an academic year and class to mark attendance'
+                    : 'Please select a class to mark attendance'
+                  }
                 </p>
               </div>
             ) : students.length === 0 ? (
@@ -376,7 +398,7 @@ export default function AttendancePage() {
               </div>
               <Button
                 onClick={handleSaveAttendance}
-                disabled={loading || saveInProgress}
+                disabled={!selectedAcademicYear || loading || saveInProgress}
               >
                 {saveInProgress ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

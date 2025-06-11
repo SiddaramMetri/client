@@ -49,6 +49,8 @@ import {
   Check,
   X,
 } from "lucide-react";
+import { AcademicYearDropdown } from "@/components/form/academic-year-dropdown";
+import { ClassDropdown } from "@/components/form/class-dropdown";
 
 // Registration Context
 const RegistrationContext = createContext();
@@ -79,7 +81,7 @@ const STEPS = [
     description: "Class and academic information",
     icon: GraduationCap,
     color: "green",
-    fields: ["rollNumber", "classId"],
+    fields: ["academicYearId", "rollNumber", "classId"],
   },
   {
     id: 3,
@@ -390,6 +392,34 @@ const AcademicDetailsStep = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Academic Year Selection */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 font-medium">
+              <Calendar className="w-4 h-4" />
+              Academic Year *
+            </Label>
+            <AcademicYearDropdown
+              value={formData.academicYearId || ""}
+              onChange={(value) => handleInputChange("academicYearId", value)}
+              placeholder="Select academic year"
+              required={true}
+              autoSelectSingle={true}
+              className={`transition-all ${
+                errors.academicYearId
+                  ? "border-red-500 focus:border-red-500"
+                  : "focus:border-green-500"
+              }`}
+            />
+            {errors.academicYearId && (
+              <Alert className="py-2">
+                <AlertCircle className="w-4 h-4" />
+                <AlertDescription className="text-sm">
+                  {errors.academicYearId}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label
@@ -427,36 +457,19 @@ const AcademicDetailsStep = () => {
                 <GraduationCap className="w-4 h-4" />
                 Class *
               </Label>
-              <Select
-                onValueChange={(value) => handleInputChange("classId", value)}
-              >
-                <SelectTrigger
-                  className={`transition-all ${
-                    errors.classId
-                      ? "border-red-500 focus:border-red-500"
-                      : "focus:border-green-500"
-                  }`}
-                >
-                  <SelectValue placeholder="Select class" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="nursery">Nursery</SelectItem>
-                  <SelectItem value="lkg">LKG</SelectItem>
-                  <SelectItem value="ukg">UKG</SelectItem>
-                  <SelectItem value="class-1">Class 1</SelectItem>
-                  <SelectItem value="class-2">Class 2</SelectItem>
-                  <SelectItem value="class-3">Class 3</SelectItem>
-                  <SelectItem value="class-4">Class 4</SelectItem>
-                  <SelectItem value="class-5">Class 5</SelectItem>
-                  <SelectItem value="class-6">Class 6</SelectItem>
-                  <SelectItem value="class-7">Class 7</SelectItem>
-                  <SelectItem value="class-8">Class 8</SelectItem>
-                  <SelectItem value="class-9">Class 9</SelectItem>
-                  <SelectItem value="class-10">Class 10</SelectItem>
-                  <SelectItem value="class-11">Class 11</SelectItem>
-                  <SelectItem value="class-12">Class 12</SelectItem>
-                </SelectContent>
-              </Select>
+              <ClassDropdown
+                value={formData.classId || ""}
+                onChange={(value) => handleInputChange("classId", value)}
+                academicYearId={formData.academicYearId}
+                placeholder="Select class"
+                required={true}
+                autoSelectSingle={true}
+                className={`transition-all ${
+                  errors.classId
+                    ? "border-red-500 focus:border-red-500"
+                    : "focus:border-green-500"
+                }`}
+              />
               {errors.classId && (
                 <Alert className="py-2">
                   <AlertCircle className="w-4 h-4" />
@@ -995,6 +1008,11 @@ export default function MultiStepStudentRegistration() {
             newErrors.studentMobile = "Student mobile is required";
           } else if (!validateMobile(formData.studentMobile)) {
             newErrors.studentMobile = "Mobile number must be exactly 10 digits";
+          }
+          break;
+        case "academicYearId":
+          if (!formData.academicYearId?.trim()) {
+            newErrors.academicYearId = "Academic year is required";
           }
           break;
         case "rollNumber":

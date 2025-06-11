@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { ClassesDialog } from "./components/classes-dialog";
 import { mockClasses } from "./data/mock";
-import { ClassData } from "./data/schema";
+import { ClassData } from "./data/schema.ts";
 import { columns } from "./data/columns";
 import { DataTable } from "@/components/ui/table/data-table";
 
@@ -110,6 +110,16 @@ export default function ClassesPage() {
                 AddButtonFun={openAddDialog}
                 isAddButtonDisabled={false}
                 showAddButton={true}
+                searchColumn="name"
+                searchPlaceholder="Search classes..."
+                pageCount={0}
+                currentPage={0}
+                onPageChange={() => {}}
+                pageSize={0}
+                onPageSizeChange={() => {}}
+                totalCount={0}
+                search={""}
+                handleSearchChange={() => {}}
               />
             </div>
           </div>

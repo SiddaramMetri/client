@@ -46,27 +46,21 @@ export function NavMain() {
       icon: Users,
     },
     {
+      title: "Classes",
+      url: `/dashboard/classes`,
+      icon: GraduationCap,
+    },
+    {
       title: "Students",
       url: `/dashboard/students`,
       icon: Users,
-      children: [
-        {
-          title: "Students",
-          url: `/dashboard/students`,
-          icon: Users,
-        },
-      ],
     },
     {
       title: "Attendance",
       url: `/dashboard/attendance`,
       icon: Users,
     },
-    {
-      title: "Classes",
-      url: `/dashboard/classes`,
-      icon: GraduationCap,
-    },
+    
     {
       title: "Tasks",
       url: `/dashboard/tasks`,
