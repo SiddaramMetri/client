@@ -12,20 +12,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useKeyboardNavigation, getGridColumns } from "../utils/keyboard-navigation"; { useState, useEffect } from 'react';
-import { useMediaQuery } from "@/hooks/use-media-query";
-import AttendanceCard from "./attendance-card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarClock, CheckCircle, CheckCircle2, Loader2, RefreshCw, UserCheck, UserX, X, Keyboard } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useKeyboardNavigation, getGridColumns } from "../utils/keyboard-navigation";
 
 interface Student {
