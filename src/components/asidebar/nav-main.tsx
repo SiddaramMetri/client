@@ -60,7 +60,11 @@ export function NavMain() {
       url: `/dashboard/attendance`,
       icon: Users,
     },
-    
+    {
+      title: "Audit Logs",
+      url: `/dashboard/audit-logs`,
+      icon: Users,
+    },
     {
       title: "Tasks",
       url: `/dashboard/tasks`,

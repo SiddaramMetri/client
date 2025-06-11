@@ -13,7 +13,7 @@ import {
     IconSettings
 } from "@tabler/icons-react";
 
-import { LayoutDashboard, Users } from "lucide-react";
+import { LayoutDashboard, Users, Shield } from "lucide-react";
 import { Permission } from "@/hooks/usePermissions";
 
 export interface NavigationItem {
@@ -93,6 +93,13 @@ export const data: NavigationConfig = {
             icon: IconCalendar,
             items: [],
             permissions: ['students.view']
+        },
+        {
+            title: "Audit Logs",
+            url: "/dashboard/audit-logs",
+            icon: Shield,
+            items: [],
+            permissions: ['users.view']
         },
         {
             title: "Reports",
