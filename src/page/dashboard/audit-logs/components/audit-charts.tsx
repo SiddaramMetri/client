@@ -168,7 +168,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ stats, logs, period = 
   return (
     <div className="space-y-6">
       {/* Overview Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Daily Average</CardTitle>
@@ -233,7 +233,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ stats, logs, period = 
       </div>
 
       {/* Main Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Daily Activity Trend */}
         <Card className="col-span-1">
           <CardHeader>
@@ -243,7 +243,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ stats, logs, period = 
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <ComposedChart data={dailyActivityData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
@@ -292,7 +292,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ stats, logs, period = 
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
                   data={actionDistributionData}
@@ -319,7 +319,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ stats, logs, period = 
       </div>
 
       {/* Secondary Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Hourly Activity Pattern */}
         <Card>
           <CardHeader>
@@ -329,15 +329,15 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ stats, logs, period = 
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={hourlyActivityData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="hour" 
-                  interval={3}
-                  fontSize={12}
+                  interval={5}
+                  fontSize={10}
                 />
-                <YAxis fontSize={12} />
+                <YAxis fontSize={10} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area
                   type="monotone"
@@ -360,11 +360,11 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ stats, logs, period = 
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={severityTrendsData} layout="horizontal">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" fontSize={12} />
-                <YAxis dataKey="severity" type="category" fontSize={12} />
+                <XAxis type="number" fontSize={10} />
+                <YAxis dataKey="severity" type="category" fontSize={10} />
                 <Tooltip 
                   formatter={(value: any) => [value, 'Count']}
                   labelFormatter={(label) => `Severity: ${label}`}
@@ -415,7 +415,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ stats, logs, period = 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             {stats.topResources.map((resource, index) => {
               const intensity = (resource.count / Math.max(...stats.topResources.map(r => r.count))) * 100;
               return (

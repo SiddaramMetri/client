@@ -158,7 +158,7 @@ export const AuditInsights: React.FC<AuditInsightsProps> = ({
   return (
     <div className="space-y-6">
       {/* Key Insights Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Daily Trend</CardTitle>
@@ -270,7 +270,7 @@ export const AuditInsights: React.FC<AuditInsightsProps> = ({
       )}
 
       {/* Performance Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -352,7 +352,7 @@ export const AuditInsights: React.FC<AuditInsightsProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
               <h4 className="font-medium text-sm">Most Active User</h4>
               {insights.mostActiveUser ? (
@@ -412,7 +412,7 @@ export const AuditInsights: React.FC<AuditInsightsProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {insights.failureRate > 5 && (
               <div className="p-3 bg-white rounded-lg border">
                 <h4 className="font-medium text-sm text-red-700">High Failure Rate</h4>

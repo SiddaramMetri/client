@@ -111,57 +111,64 @@ const AuditLogsPage = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Audit Logs</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Audit Logs</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Track and monitor all system activities and user actions
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <Button 
             variant={isLive ? "default" : "outline"} 
             size="sm" 
+            className="min-h-[30px] flex-1 sm:flex-none"
             onClick={() => setIsLive(!isLive)}
           >
             <Activity className={`h-4 w-4 mr-2 ${isLive ? 'animate-pulse' : ''}`} />
-            {isLive ? 'Live' : 'Enable Live'}
+            <span className="hidden sm:inline">{isLive ? 'Live' : 'Enable Live'}</span>
+            <span className="sm:hidden">{isLive ? 'Live' : 'Live'}</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
+          <Button variant="outline" size="sm" className="min-h-[30px] flex-1 sm:flex-none" onClick={() => refetch()}>
             <RefreshCcw className="h-4 w-4 mr-2" />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
+          <Button variant="outline" size="sm" className="min-h-[30px] flex-1 sm:flex-none" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            <span className="hidden sm:inline">Export CSV</span>
           </Button>
         </div>
       </div>
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Eye className="h-4 w-4" />
-            Overview
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Overview</span>
+            <span className="sm:hidden">Home</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
+          <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Analytics</span>
+            <span className="sm:hidden">Charts</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Live Activity
+          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Live Activity</span>
+            <span className="sm:hidden">Live</span>
           </TabsTrigger>
-          <TabsTrigger value="insights" className="flex items-center gap-2">
-            <Lightbulb className="h-4 w-4" />
-            Insights
+          <TabsTrigger value="insights" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden lg:inline">Insights</span>
+            <span className="lg:hidden">AI</span>
           </TabsTrigger>
-          <TabsTrigger value="logs" className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Logs
+          <TabsTrigger value="logs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden lg:inline">Logs</span>
+            <span className="lg:hidden">Table</span>
           </TabsTrigger>
         </TabsList>
 
@@ -170,7 +177,7 @@ const AuditLogsPage = () => {
           {/* Top Stats Row */}
           {statsData && <AuditLogsStats stats={statsData.stats} />}
           {/* Bottom Section - Key Metrics Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">System Health</CardTitle>
@@ -262,7 +269,7 @@ const AuditLogsPage = () => {
             </Card>
           </div>
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {/* Recent Activity - Takes 2/3 width on large screens */}
            {/* <div className="xl:col-span-2 space-y-6">
                 <Card>
@@ -486,7 +493,7 @@ const AuditLogsPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 {/* Search */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Search</label>

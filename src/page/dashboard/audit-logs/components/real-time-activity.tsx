@@ -103,7 +103,7 @@ export const RealTimeActivity: React.FC<RealTimeActivityProps> = ({
   return (
     <div className="space-y-4">
       {/* Live Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="flex items-center justify-between p-4">
             <div>
@@ -160,7 +160,7 @@ export const RealTimeActivity: React.FC<RealTimeActivityProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[400px] w-full">
+          <ScrollArea className="h-[300px] sm:h-[400px] w-full">
             <div className="space-y-3">
               {recentLogs.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
@@ -176,7 +176,7 @@ export const RealTimeActivity: React.FC<RealTimeActivityProps> = ({
                     }`}
                   >
                     {/* User Avatar */}
-                    <Avatar className="h-8 w-8 mt-1">
+                    <Avatar className="h-10 w-10 sm:h-8 sm:w-8 mt-1">
                       <AvatarFallback className="text-xs">
                         {log.userId?.firstName?.[0] || log.userEmail?.[0]?.toUpperCase() || 'S'}
                       </AvatarFallback>
@@ -184,14 +184,16 @@ export const RealTimeActivity: React.FC<RealTimeActivityProps> = ({
 
                     {/* Activity Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        {getActionIcon(log.action, log.success)}
-                        <span className="text-sm font-medium truncate">
-                          {getActivityDescription(log)}
-                        </span>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                        <div className="flex items-center gap-2">
+                          {getActionIcon(log.action, log.success)}
+                          <span className="text-sm font-medium break-words">
+                            {getActivityDescription(log)}
+                          </span>
+                        </div>
                         <Badge 
                           variant={getSeverityColor(log.severity) as any}
-                          className="text-xs"
+                          className="text-xs self-start sm:self-auto"
                         >
                           {log.severity}
                         </Badge>

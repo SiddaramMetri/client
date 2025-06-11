@@ -238,21 +238,155 @@ export const AuditLogsTable: React.FC<AuditLogsTableProps> = ({
   return (
     <Card>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Time</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Severity</TableHead>
-              <TableHead>Resource</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Details</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        {/* Mobile Card Layout */}
+        <div className="block lg:hidden">
+          <div className="p-4 space-y-4">
+            {data.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="flex flex-col items-center gap-2">
+                  <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+                  <p className="text-muted-foreground">No audit logs found</p>
+                </div>
+              </div>
+            ) : (
+              data.map((log) => (
+                <Card key={log._id} className={`p-4 ${!log.success ? 'bg-red-50 border-red-200' : ''}`}>
+                  <div className="space-y-3">
+                    {/* Header Row */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="text-sm">
+                            {log.userId?.firstName?.[0] || log.userEmail?.[0]?.toUpperCase() || <User className="h-5 w-5" />}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {log.userId?.firstName && log.userId?.lastName
+                              ? `${log.userId.firstName} ${log.userId.lastName}`
+                              : log.userId?.email || log.userEmail || 'System'
+                            }
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(log.timestamp), 'MMM dd, HH:mm')}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {log.success ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="min-h-[44px] px-3">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Audit Log Details</DialogTitle>
+                            </DialogHeader>
+                            <AuditLogDetails log={log} />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+
+                    {/* Action and Status Row */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {log.action.replace(/_/g, ' ')}
+                      </Badge>
+                      <Badge variant={getSeverityColor(log.severity) as any} className="text-xs">
+                        {log.severity}
+                      </Badge>
+                      {log.resource && (
+                        <Badge variant="secondary" className="text-xs">
+                          {log.resource}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Description */}
+                    {log.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {log.description}
+                      </p>
+                    )}
+
+                    {/* Metadata */}
+                    <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                      <span>{log.category.replace(/_/g, ' ')}</span>
+                      {log.ipAddress && (
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          <span>{log.ipAddress}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+
+          {/* Mobile Pagination */}
+          {pagination && pagination.pages > 1 && (
+            <div className="flex flex-col items-center gap-4 px-4 py-4 border-t">
+              <div className="text-sm text-muted-foreground text-center">
+                Showing {((currentPage - 1) * pagination.limit) + 1} to{' '}
+                {Math.min(currentPage * pagination.limit, pagination.total)} of{' '}
+                {pagination.total} results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[44px] px-4"
+                  onClick={() => onPageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm">{currentPage}</span>
+                  <span className="text-sm text-muted-foreground">of {pagination.pages}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[44px] px-4"
+                  onClick={() => onPageChange(currentPage + 1)}
+                  disabled={currentPage >= pagination.pages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table Layout */}
+        <div className="hidden lg:block overflow-x-auto">
+          <Table className="min-w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Time</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Severity</TableHead>
+                <TableHead>Resource</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Details</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
             {data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8">
@@ -356,7 +490,7 @@ export const AuditLogsTable: React.FC<AuditLogsTableProps> = ({
                           <Eye className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogContent className="max-w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>Audit Log Details</DialogTitle>
                         </DialogHeader>
@@ -370,7 +504,7 @@ export const AuditLogsTable: React.FC<AuditLogsTableProps> = ({
           </TableBody>
         </Table>
 
-        {/* Pagination */}
+        {/* Desktop Pagination */}
         {pagination && pagination.pages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t">
             <div className="text-sm text-muted-foreground">
@@ -382,6 +516,7 @@ export const AuditLogsTable: React.FC<AuditLogsTableProps> = ({
               <Button
                 variant="outline"
                 size="sm"
+                className="min-h-[44px] px-4"
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
               >
@@ -399,7 +534,7 @@ export const AuditLogsTable: React.FC<AuditLogsTableProps> = ({
                       variant={pageNum === currentPage ? "default" : "outline"}
                       size="sm"
                       onClick={() => onPageChange(pageNum)}
-                      className="w-8 h-8 p-0"
+                      className="min-w-[44px] min-h-[44px] p-0"
                     >
                       {pageNum}
                     </Button>
@@ -409,6 +544,7 @@ export const AuditLogsTable: React.FC<AuditLogsTableProps> = ({
               <Button
                 variant="outline"
                 size="sm"
+                className="min-h-[44px] px-4"
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage >= pagination.pages}
               >
@@ -418,6 +554,7 @@ export const AuditLogsTable: React.FC<AuditLogsTableProps> = ({
             </div>
           </div>
         )}
+        </div>
       </CardContent>
     </Card>
   );
