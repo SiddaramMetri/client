@@ -1,5 +1,11 @@
 import API from "@/lib/axios-client";
 import { Task } from "../page/dashboard/students/data/schema";
+import { 
+  ApiStudent, 
+  transformApiStudentsToTasks, 
+  transformApiStudentToTask,
+  transformTaskToApiStudent 
+} from "@/lib/student-transform";
 
 // Type definitions
 export interface StudentUploadResult {
@@ -14,7 +20,22 @@ export interface GetStudentsParams {
   limit?: number;
   name?: string;
   classId?: string;
+  academicYearId?: string;
+  gender?: string;
   isActive?: boolean;
+  admissionDateFrom?: string;
+  admissionDateTo?: string;
+}
+
+export interface ApiStudentResponse {
+  message: string;
+  students: ApiStudent[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
 }
 
 export interface StudentApiResponse {
@@ -31,25 +52,64 @@ export interface StudentApiResponse {
 // API Functions
 export const getStudentsService = async (params: GetStudentsParams = {}): Promise<StudentApiResponse> => {
   const response = await API.get("/student", { params });
-  return response.data;
+  const apiResponse: ApiStudentResponse = response.data;
+  
+  // Transform API students to frontend Task format
+  const transformedStudents = transformApiStudentsToTasks(apiResponse.students);
+  
+  return {
+    message: apiResponse.message,
+    students: transformedStudents,
+    pagination: apiResponse.pagination,
+  };
 };
 
 export const getStudentByIdService = async (studentId: string): Promise<{ message: string; student: Task }> => {
   const response = await API.get(`/student/${studentId}`);
-  return response.data;
+  const apiResponse: { message: string; student: ApiStudent } = response.data;
+  
+  // Transform API student to frontend Task format
+  const transformedStudent = transformApiStudentToTask(apiResponse.student);
+  
+  return {
+    message: apiResponse.message,
+    student: transformedStudent,
+  };
 };
 
 export const createStudentService = async (data: Partial<Task>): Promise<{ message: string; student: Task }> => {
-  const response = await API.post("/student", data);
-  return response.data;
+  // Transform frontend data to API format
+  const apiData = transformTaskToApiStudent(data);
+  
+  const response = await API.post("/student", apiData);
+  const apiResponse: { message: string; student: ApiStudent } = response.data;
+  
+  // Transform response back to frontend format
+  const transformedStudent = transformApiStudentToTask(apiResponse.student);
+  
+  return {
+    message: apiResponse.message,
+    student: transformedStudent,
+  };
 };
 
 export const updateStudentService = async (
   studentId: string,
   data: Partial<Task>
 ): Promise<{ message: string; student: Task }> => {
-  const response = await API.put(`/student/${studentId}`, data);
-  return response.data;
+  // Transform frontend data to API format
+  const apiData = transformTaskToApiStudent(data);
+  
+  const response = await API.put(`/student/${studentId}`, apiData);
+  const apiResponse: { message: string; student: ApiStudent } = response.data;
+  
+  // Transform response back to frontend format
+  const transformedStudent = transformApiStudentToTask(apiResponse.student);
+  
+  return {
+    message: apiResponse.message,
+    student: transformedStudent,
+  };
 };
 
 export const deleteStudentService = async (studentId: string): Promise<{ message: string }> => {
@@ -76,4 +136,17 @@ export const uploadStudentExcelService = async (file: File): Promise<{ message: 
   });
   
   return response.data;
+};
+
+export const toggleStudentStatusService = async (studentId: string): Promise<{ message: string; student: Task }> => {
+  const response = await API.patch(`/student/${studentId}/toggle-status`);
+  const apiResponse: { message: string; student: ApiStudent } = response.data;
+  
+  // Transform response back to frontend format
+  const transformedStudent = transformApiStudentToTask(apiResponse.student);
+  
+  return {
+    message: apiResponse.message,
+    student: transformedStudent,
+  };
 };

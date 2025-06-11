@@ -1,4 +1,7 @@
 import React, { useState, createContext, useContext } from "react";
+import { useCreateStudent } from "@/hooks/api/use-students";
+import { useToast } from "@/components/ui/use-toast";
+import { Task } from "@/page/dashboard/students/data/schema";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,14 +49,39 @@ import {
   Home,
   FileText,
   Camera,
-  Check,
   X,
+  Loader2,
 } from "lucide-react";
 import { AcademicYearDropdown } from "@/components/form/academic-year-dropdown";
 import { ClassDropdown } from "@/components/form/class-dropdown";
 
+// Registration Context Type
+interface RegistrationContextType {
+  currentStep: number;
+  setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
+  formData: any;
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  errors: any;
+  setErrors: React.Dispatch<React.SetStateAction<any>>;
+  setFieldError: (field: string, message: string) => void;
+  clearFieldError: (field: string) => void;
+  completedSteps: Set<number>;
+  setCompletedSteps: React.Dispatch<React.SetStateAction<Set<number>>>;
+}
+
 // Registration Context
-const RegistrationContext = createContext();
+const RegistrationContext = createContext<RegistrationContextType>({
+  currentStep: 1,
+  setCurrentStep: () => {},
+  formData: {},
+  setFormData: () => {},
+  errors: {},
+  setErrors: () => {},
+  setFieldError: () => {},
+  clearFieldError: () => {},
+  completedSteps: new Set(),
+  setCompletedSteps: () => {},
+});
 
 const useRegistrationContext = () => {
   const context = useContext(RegistrationContext);
@@ -110,12 +138,12 @@ const STEPS = [
 ];
 
 // Validation Functions
-const validateEmail = (email) => {
+const validateEmail = (email: string) => {
   if (!email) return true; // Optional field
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-const validateMobile = (mobile) => {
+const validateMobile = (mobile: string) => {
   return /^\d{10}$/.test(mobile);
 };
 
@@ -124,8 +152,8 @@ const BasicInformationStep = () => {
   const { formData, setFormData, errors, setFieldError, clearFieldError } =
     useRegistrationContext();
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: any) => {
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
     clearFieldError(field);
   };
 
@@ -516,7 +544,7 @@ const ParentInformationStep = () => {
     clearFieldError(field);
   };
 
-  const handleMobileBlur = (field) => {
+  const handleMobileBlur = (field: string) => {
     if (formData[field] && !validateMobile(formData[field])) {
       setFieldError(field, "Mobile number must be exactly 10 digits");
     }
@@ -814,11 +842,11 @@ const AddressDetailsStep = () => {
 };
 
 const FinalSetupStep = () => {
-  const { formData, setFormData } = useRegistrationContext();
+  const { setFormData } = useRegistrationContext();
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedImage(file);
@@ -936,8 +964,13 @@ const FinalSetupStep = () => {
   );
 };
 
+// Props interface for the registration component
+interface MultiStepStudentRegistrationProps {
+  onSuccess?: () => void;
+}
+
 // Main Registration Dialog Component
-export default function MultiStepStudentRegistration() {
+export default function MultiStepStudentRegistration({ onSuccess }: MultiStepStudentRegistrationProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -973,9 +1006,11 @@ export default function MultiStepStudentRegistration() {
     setCompletedSteps,
   };
 
-  const validateStep = (stepId) => {
+  const validateStep = (stepId: number) => {
     const stepConfig = STEPS.find((step) => step.id === stepId);
-    const newErrors = {};
+    if (!stepConfig) return true;
+    
+    const newErrors: any = {};
 
     stepConfig.fields.forEach((field) => {
       switch (field) {
@@ -1072,24 +1107,76 @@ export default function MultiStepStudentRegistration() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleStepClick = (stepId) => {
+  const handleStepClick = (stepId: number) => {
     if (completedSteps.has(stepId) || stepId <= currentStep) {
       setCurrentStep(stepId);
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Registration completed:", formData);
-    alert("🎉 Student registered successfully!");
-    setIsOpen(false);
-    setCurrentStep(1);
-    setCompletedSteps(new Set());
-    setFormData({
-      country: "India",
-      admissionDate: new Date().toISOString().split("T")[0],
-      isActive: true,
-    });
-    setErrors({});
+  const createStudentMutation = useCreateStudent();
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    try {
+      // Validate all steps before submission
+      const allStepsValid = STEPS.every(step => validateStep(step.id));
+      
+      if (!allStepsValid) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please fix all validation errors before submitting",
+        });
+        return;
+      }
+
+      // Transform form data to Task format for the API service
+      const taskData: Partial<Task> = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        classId: formData.classId,
+        rollNumber: formData.rollNumber,
+        studentEmail: formData.studentEmail,
+        studentMobile: formData.studentMobile,
+        fatherName: formData.fatherName,
+        parentMobile: formData.primaryMobileNo,
+        status: formData.isActive !== false ? 'active' : 'inactive',
+      };
+
+      // Submit to API
+      await createStudentMutation.mutateAsync(taskData);
+
+      // Success - close dialog and reset form
+      setIsOpen(false);
+      setCurrentStep(1);
+      setCompletedSteps(new Set());
+      setFormData({
+        country: "India",
+        admissionDate: new Date().toISOString().split("T")[0],
+        isActive: true,
+      });
+      setErrors({});
+
+      toast({
+        title: "Student Registered",
+        description: "Student has been successfully registered in the system",
+      });
+
+      // Call the success callback to refresh parent data
+      if (onSuccess) {
+        onSuccess();
+      }
+
+    } catch (error) {
+      console.error("Registration failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: "Failed to register student. Please try again.",
+      });
+    }
   };
 
   const getStepComponent = () => {
@@ -1249,11 +1336,13 @@ export default function MultiStepStudentRegistration() {
               <DialogHeader className="p-6 border-b bg-gradient-to-r from-gray-50 to-gray-100">
                 <div className="flex items-center gap-4">
                   <div
-                    className={`p-3 rounded-xl bg-${currentStepConfig?.color}-100`}
+                    className={`p-3 rounded-xl bg-${currentStepConfig?.color || 'blue'}-100`}
                   >
-                    <currentStepConfig.icon
-                      className={`w-6 h-6 text-${currentStepConfig?.color}-600`}
-                    />
+                    {currentStepConfig && (
+                      <currentStepConfig.icon
+                        className={`w-6 h-6 text-${currentStepConfig.color}-600`}
+                      />
+                    )}
                   </div>
                   <div>
                     <DialogTitle className="text-2xl font-bold text-gray-900">
@@ -1305,10 +1394,20 @@ export default function MultiStepStudentRegistration() {
                     ) : (
                       <Button
                         onClick={handleSubmit}
-                        className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
+                        disabled={createStudentMutation.isPending}
+                        className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
                       >
-                        <CheckCircle className="w-4 h-4" />
-                        Register Student
+                        {createStudentMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Registering...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            Register Student
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>

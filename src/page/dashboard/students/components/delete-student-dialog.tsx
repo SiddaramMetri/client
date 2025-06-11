@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,8 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import axios from "axios";
+import { useDeleteStudent } from "@/hooks/api/use-students";
 
 interface DeleteStudentDialogProps {
   open: boolean;
@@ -28,24 +26,13 @@ export default function DeleteStudentDialog({
   studentName,
   onSuccess,
 }: DeleteStudentDialogProps) {
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const deleteStudentMutation = useDeleteStudent();
 
   const handleDelete = async () => {
     if (!studentId) return;
 
-    setLoading(true);
     try {
-      // This would be the actual API call in a production environment
-      // await axios.delete(`/api/v1/student/${studentId}`);
-      
-      // For now, simulate a successful API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Student Deleted",
-        description: `${studentName} has been removed successfully`,
-      });
+      await deleteStudentMutation.mutateAsync(studentId);
       
       // Call onSuccess callback to refresh data
       if (onSuccess) {
@@ -54,14 +41,9 @@ export default function DeleteStudentDialog({
       
       // Close dialog
       onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Deletion Failed",
-        description: error.response?.data?.message || "Failed to delete the student",
-      });
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error("Failed to delete student:", error);
     }
   };
 
@@ -76,16 +58,18 @@ export default function DeleteStudentDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleteStudentMutation.isPending}>
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
               handleDelete();
             }}
-            disabled={loading}
+            disabled={deleteStudentMutation.isPending}
             className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
           >
-            {loading ? (
+            {deleteStudentMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Deleting...

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import { DataTable } from "@/components/ui/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Download, Upload, UserPlus, Loader2 } from "lucide-react";
@@ -8,19 +9,26 @@ import { statuses } from "./data/statuses";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import mockStudents from "./data/mock-students.json";
 import { Task } from "./data/schema";
 import EditStudentDialog from "./components/edit-student-dialog";
 import ViewStudentDialog from "./components/view-student-dialog";
 import DeleteStudentDialog from "./components/delete-student-dialog";
 import UploadStudentsDialog from "./components/upload-students-dialog";
 import StudentRegistrationDialog from "./components/student-registration-dialog";
+import AdvancedFilters, { AdvancedFilterOptions } from "./components/advanced-filters";
 import { downloadStudentTemplateService } from "@/services/student.service";
+import { useStudents, useStudentsStats, useToggleStudentStatus } from "@/hooks/api/use-students";
 
 export default function StudentsPage() {
-  const [tasks, setTasks] = useState<Task[]>(mockStudents); // Start with mock data, will be replaced with API
-  const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [filters, setFilters] = useState<AdvancedFilterOptions>({
+    search: "",
+  });
+  
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearch = useDebounce(filters.search, 300);
 
   // Dialog states
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -33,76 +41,175 @@ export default function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<Task | null>(null);
 
   const { toast } = useToast();
+  const toggleStatusMutation = useToggleStudentStatus();
 
-  // Fetch students from API (using useCallback to avoid dependency issues)
-  const fetchStudents = useCallback(async () => {
-    setLoading(true);
-    try {
-      // This would be the actual API call in a production environment
-      // const response = await API.get("/student", {
-      //   params: {
-      //     isActive: activeFilter === 'active' ? true :
-      //              activeFilter === 'inactive' ? false : undefined
-      //   }
-      // });
-      // setTasks(response.data.students);
+  // Reset page when search term changes
+  useEffect(() => {
+    if (debouncedSearch !== filters.search) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearch, filters.search]);
 
-      // For now, simulate API call and use the mock data
-      await new Promise((resolve) => setTimeout(resolve, 500));
+  // Prepare query parameters based on current filters (memoized to prevent infinite re-renders)
+  const queryParams = useMemo(() => ({
+    page: currentPage,
+    limit: pageSize,
+    ...(debouncedSearch && { name: debouncedSearch }),
+    ...(filters.classId && { classId: filters.classId }),
+    ...(filters.academicYearId && { academicYearId: filters.academicYearId }),
+    ...(filters.gender && { gender: filters.gender }),
+    ...(filters.admissionDateFrom && { admissionDateFrom: filters.admissionDateFrom.toISOString().split('T')[0] }),
+    ...(filters.admissionDateTo && { admissionDateTo: filters.admissionDateTo.toISOString().split('T')[0] }),
+    // Handle status from both tab and advanced filter
+    ...((activeFilter === "active" || filters.status === "active") && { isActive: true }),
+    ...((activeFilter === "inactive" || filters.status === "inactive") && { isActive: false }),
+  }), [currentPage, pageSize, debouncedSearch, filters, activeFilter]);
 
-      // Filter mock data based on active filter
-      if (activeFilter === "active") {
-        setTasks(mockStudents.filter((student) => student.status === "active"));
-      } else if (activeFilter === "inactive") {
-        setTasks(
-          mockStudents.filter((student) => student.status === "inactive")
-        );
-      } else {
-        setTasks(mockStudents);
-      }
-    } catch (error) {
-      console.error("Failed to fetch students:", error);
+  // Fetch students using the custom hook
+  const {
+    data: studentsData,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useStudents(queryParams);
+
+  // Get students stats for tab counts
+  const stats = useStudentsStats();
+
+  const students = studentsData?.students || [];
+  const pagination = studentsData?.pagination;
+  
+  // Check if search is in progress (search term is different from debounced)
+  const isSearching = filters.search !== debouncedSearch;
+
+  // Handle API errors using useEffect to prevent infinite re-renders
+  useEffect(() => {
+    if (error) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: "Failed to load student data",
       });
-    } finally {
-      setLoading(false);
     }
-  }, [activeFilter, toast]); // Dependencies for the callback
+  }, [error, toast]);
 
   // Filter change handler
-  const handleFilterChange = (value: string) => {
+  const handleFilterChange = useCallback((value: string) => {
     setActiveFilter(value);
-  };
+    setCurrentPage(1); // Reset to first page when changing filters
+  }, []);
 
-  // Effect to refetch data when filter changes
-  useEffect(() => {
-    fetchStudents();
-  }, [fetchStudents]);
+  // Filter handlers
+  const handleFiltersChange = useCallback((newFilters: AdvancedFilterOptions) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, []);
+
+  const handleFiltersReset = useCallback(() => {
+    setFilters({ search: "" });
+    setCurrentPage(1);
+  }, []);
+
+  // Pagination handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size);
+    setCurrentPage(1); // Reset to first page when changing page size
+  }, []);
 
   // Action handlers
-  const handleOpenAddDialog = () => {
+  const handleOpenAddDialog = useCallback(() => {
     setAddDialogOpen(true);
-  };
+  }, []);
 
-  const handleOpenEditDialog = (student: Task) => {
+  const handleOpenEditDialog = useCallback((student: Task) => {
     setSelectedStudent(student);
     setEditDialogOpen(true);
-  };
+  }, []);
 
-  const handleOpenViewDialog = (student: Task) => {
+  const handleOpenViewDialog = useCallback((student: Task) => {
     setSelectedStudent(student);
     setViewDialogOpen(true);
-  };
+  }, []);
 
-  const handleOpenDeleteDialog = (student: Task) => {
+  const handleOpenDeleteDialog = useCallback((student: Task) => {
     setSelectedStudent(student);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleDownloadTemplate = async () => {
+  // New action handlers
+  const handleToggleStatus = useCallback((student: Task) => {
+    toggleStatusMutation.mutate(student.id);
+  }, [toggleStatusMutation]);
+
+  const handleDownloadProfile = useCallback((student: Task) => {
+    // TODO: Implement profile download functionality
+    toast({
+      title: "Download Profile",
+      description: `Downloading profile for ${student.firstName} ${student.lastName}`,
+    });
+  }, [toast]);
+
+  const handleCopyDetails = useCallback((student: Task) => {
+    const details = `
+Name: ${student.firstName} ${student.lastName}
+Student ID: ${student.studentId}
+Roll Number: ${student.rollNumber}
+Class: ${student.className}
+Mobile: ${student.studentMobile}
+Email: ${student.studentEmail || 'N/A'}
+Parent: ${student.fatherName}
+Parent Mobile: ${student.parentMobile}
+    `.trim();
+
+    navigator.clipboard.writeText(details).then(() => {
+      toast({
+        title: "Details Copied",
+        description: "Student details have been copied to clipboard",
+      });
+    }).catch(() => {
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Failed to copy details to clipboard",
+      });
+    });
+  }, [toast]);
+
+  const handleSendEmail = useCallback((student: Task) => {
+    // TODO: Implement email sending functionality
+    const email = student.studentEmail || student.rawData?.parentInfo?.email;
+    if (email) {
+      window.open(`mailto:${email}?subject=Regarding ${student.firstName} ${student.lastName}`);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "No Email Available",
+        description: "No email address found for this student or parent",
+      });
+    }
+  }, [toast]);
+
+  const handleSendMessage = useCallback((student: Task) => {
+    // TODO: Implement messaging functionality
+    toast({
+      title: "Send Message",
+      description: `Opening message dialog for ${student.firstName} ${student.lastName}`,
+    });
+  }, [toast]);
+
+  const handleViewReports = useCallback((student: Task) => {
+    // TODO: Implement reports viewing functionality
+    toast({
+      title: "View Reports",
+      description: `Opening reports for ${student.firstName} ${student.lastName}`,
+    });
+  }, [toast]);
+
+  const handleDownloadTemplate = useCallback(async () => {
     try {
       // Use our centralized service for template download
       const blobData = await downloadStudentTemplateService();
@@ -123,7 +230,7 @@ export default function StudentsPage() {
     } catch (error) {
       console.error("Failed to download template:", error);
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Download Failed",
         description:
           error instanceof Error
@@ -131,16 +238,39 @@ export default function StudentsPage() {
             : "Failed to download the template file",
       });
     }
-  };
+  }, [toast]);
 
-  const handleUploadClick = () => {
+  const handleUploadClick = useCallback(() => {
     setUploadDialogOpen(true);
-  };
+  }, []);
 
   // Success callbacks
-  const handleOperationSuccess = () => {
-    fetchStudents();
-  };
+  const handleOperationSuccess = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Memoize columns to prevent re-creation on every render
+  const tableColumns = useMemo(() => columns({
+    onView: handleOpenViewDialog,
+    onEdit: handleOpenEditDialog,
+    onDelete: handleOpenDeleteDialog,
+    onToggleStatus: handleToggleStatus,
+    onDownloadProfile: handleDownloadProfile,
+    onCopyDetails: handleCopyDetails,
+    onSendEmail: handleSendEmail,
+    onSendMessage: handleSendMessage,
+    onViewReports: handleViewReports,
+  }), [
+    handleOpenViewDialog, 
+    handleOpenEditDialog, 
+    handleOpenDeleteDialog, 
+    handleToggleStatus,
+    handleDownloadProfile,
+    handleCopyDetails,
+    handleSendEmail,
+    handleSendMessage,
+    handleViewReports,
+  ]);
 
   return (
     <>
@@ -170,6 +300,13 @@ export default function StudentsPage() {
             </Button>
           </div>
         </div>
+
+        {/* Advanced Filters */}
+        <AdvancedFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onReset={handleFiltersReset}
+        />
         {/* {Task Table} */}
         <div>
           <Tabs
@@ -178,38 +315,44 @@ export default function StudentsPage() {
             onValueChange={handleFilterChange}
           >
             <TabsList className="mb-4">
-              <TabsTrigger value="all">All Students</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="inactive">Inactive</TabsTrigger>
+              <TabsTrigger value="all">
+                All Students {stats.total > 0 && `(${stats.total})`}
+              </TabsTrigger>
+              <TabsTrigger value="active">
+                Active {stats.active > 0 && `(${stats.active})`}
+              </TabsTrigger>
+              <TabsTrigger value="inactive">
+                Inactive {stats.inactive > 0 && `(${stats.inactive})`}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-4">
               <div>
-              {loading ? (
+              {loading || isSearching ? (
                     <div className="flex justify-center items-center py-20">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-sm text-muted-foreground">
+                          {isSearching ? "Searching..." : "Loading students..."}
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <DataTable
-                      data={tasks}
-                      columns={columns({
-                        onView: handleOpenViewDialog,
-                        onEdit: handleOpenEditDialog,
-                        onDelete: handleOpenDeleteDialog,
-                      })}
+                      data={students}
+                      columns={tableColumns}
                       statuses={statuses}
                       priorities={priorities}
                       AddButtonText="Add Student"
                       AddButtonFun={handleOpenAddDialog}
                       isAddButtonDisabled={false}
-                      search={""}
-                      handleSearchChange={() => {}}
-                      totalCount={tasks.length}
-                      pageCount={1}
-                      currentPage={1}
-                      onPageChange={() => {}}
-                      onPageSizeChange={() => {}}
-                      pageSize={10}
+                      totalCount={pagination?.total || 0}
+                      pageCount={pagination?.pages || 1}
+                      currentPage={currentPage}
+                      onPageChange={handlePageChange}
+                      onPageSizeChange={handlePageSizeChange}
+                      pageSize={pageSize}
+                      hideSearch={true}
                     />
                   )}
               </div>
@@ -224,7 +367,7 @@ export default function StudentsPage() {
                     </div>
                   ) : (
                     <DataTable
-                      data={tasks.filter((t) => t.status === "active")}
+                      data={students}
                       columns={columns({
                         onView: handleOpenViewDialog,
                         onEdit: handleOpenEditDialog,
@@ -235,14 +378,13 @@ export default function StudentsPage() {
                       AddButtonText="Add Student"
                       AddButtonFun={handleOpenAddDialog}
                       isAddButtonDisabled={false}
-                      search={""}
-                      handleSearchChange={() => {}}
-                      totalCount={tasks.length}
-                      pageCount={1}
-                      currentPage={1}
-                      onPageChange={() => {}}
-                      onPageSizeChange={() => {}}
-                      pageSize={10}
+                      hideSearch={true}
+                      totalCount={pagination?.total || 0}
+                      pageCount={pagination?.pages || 1}
+                      currentPage={currentPage}
+                      onPageChange={handlePageChange}
+                      onPageSizeChange={handlePageSizeChange}
+                      pageSize={pageSize}
                     />
                   )}
                 </CardContent>
@@ -258,7 +400,7 @@ export default function StudentsPage() {
                     </div>
                   ) : (
                     <DataTable
-                      data={tasks.filter((t) => t.status === "inactive")}
+                      data={students}
                       columns={columns({
                         onView: handleOpenViewDialog,
                         onEdit: handleOpenEditDialog,
@@ -269,14 +411,13 @@ export default function StudentsPage() {
                       AddButtonText="Add Student"
                       AddButtonFun={handleOpenAddDialog}
                       isAddButtonDisabled={false}
-                      search={""}
-                      handleSearchChange={() => {}}
-                      totalCount={tasks.length}
-                      pageCount={1}
-                      currentPage={1}
-                      onPageChange={() => {}}
-                      onPageSizeChange={() => {}}
-                      pageSize={10}
+                      hideSearch={true}
+                      totalCount={pagination?.total || 0}
+                      pageCount={pagination?.pages || 1}
+                      currentPage={currentPage}
+                      onPageChange={handlePageChange}
+                      onPageSizeChange={handlePageSizeChange}
+                      pageSize={pageSize}
                     />
                   )}
                 </CardContent>

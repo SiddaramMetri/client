@@ -8,7 +8,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -27,7 +26,7 @@ import {
   Loader2 
 } from "lucide-react";
 import { Task } from "../data/schema";
-import axios from "axios";
+import { useUpdateStudent } from "@/hooks/api/use-students";
 
 interface EditStudentDialogProps {
   open: boolean;
@@ -42,10 +41,9 @@ export default function EditStudentDialog({
   student,
   onSuccess,
 }: EditStudentDialogProps) {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<Partial<Task>>({});
   const [activeTab, setActiveTab] = useState("personal");
-  const { toast } = useToast();
+  const updateStudentMutation = useUpdateStudent();
 
   // Initialize form data when student prop changes
   useEffect(() => {
@@ -86,34 +84,22 @@ export default function EditStudentDialog({
     e.preventDefault();
     if (!student?.id) return;
 
-    setLoading(true);
     try {
-      // This would be the actual API call in a production environment
-      // const response = await axios.put(`/api/v1/student/${student.id}`, formData);
-
-      // For now, simulate a successful response
-      setTimeout(() => {
-        toast({
-          title: "Student Updated",
-          description: "Student information has been updated successfully",
-        });
-
-        // Call onSuccess callback to refresh data
-        if (onSuccess) {
-          onSuccess();
-        }
-
-        // Close dialog
-        onOpenChange(false);
-      }, 1000);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: error.response?.data?.message || "Failed to update student information",
+      await updateStudentMutation.mutateAsync({
+        studentId: student.id,
+        data: formData,
       });
-    } finally {
-      setLoading(false);
+
+      // Call onSuccess callback to refresh data
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      // Close dialog
+      onOpenChange(false);
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error("Failed to update student:", error);
     }
   };
 
@@ -314,8 +300,8 @@ export default function EditStudentDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? (
+            <Button type="submit" disabled={updateStudentMutation.isPending}>
+              {updateStudentMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...

@@ -3,7 +3,7 @@ import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
 
 import data from "@/components/data/data.json";
-import MultiStepStudentRegistration from "@/components/new-page";
+import MultiStepStudentRegistration from "@/page/dashboard/students/components/MultiStepStudentRegistration";
 
 export default function NewHome() {
   return (

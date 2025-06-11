@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import MultiStepStudentRegistration from "@/components/new-page";
+import MultiStepStudentRegistration from "@/page/dashboard/students/components/MultiStepStudentRegistration";
 import { useToast } from "@/components/ui/use-toast";
 
 interface StudentRegistrationDialogProps {
@@ -45,7 +44,7 @@ export default function StudentRegistrationDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <MultiStepStudentRegistration />
+        <MultiStepStudentRegistration onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );

@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { FileUploader } from "react-drag-drop-files";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, School } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { downloadStudentTemplateService, uploadStudentExcelService, StudentUploadResult } from "@/services/student.service";
