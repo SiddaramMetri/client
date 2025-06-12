@@ -25,7 +25,7 @@ export const useRBACPermissions = () => {
   const userPermissions: UserPermissions = useMemo(() => {
     return {
       permissions: user?.role?.permissions || [],
-      roles: user?.role || []
+      roles: user?.role?.roles || []
     };
   }, [user?.role]);
 

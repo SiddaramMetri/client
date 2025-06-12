@@ -54,199 +54,11 @@ import {
 import { format } from 'date-fns';
 import { useRoles, usePermissions, useUserRoles, useAssignRole, useRemoveRole, useUserRoleStats, useRoleStats } from '@/hooks/api/use-rbac';
 import { useAuth } from '@/hooks/api/use-auth';
+import { useQuery } from '@tanstack/react-query';
+import { getAllUsers } from '@/services/user.service';
+import EditUserRoleDialog from './components/edit-user-role-dialog';
 
-// Mock data - replace with actual API calls
-const mockUsers = [
-  {
-    id: '1',
-    name: 'John Super Admin',
-    email: 'john@example.com',
-    avatar: null,
-    isActive: true,
-    createdAt: '2024-01-15T10:00:00Z',
-    lastLogin: '2024-06-12T14:30:00Z',
-    roles: [
-      {
-        id: 'role1',
-        name: 'Super Administrator',
-        code: 'super_admin',
-        level: 1,
-        assignedAt: '2024-01-15T10:00:00Z',
-        assignedBy: 'System',
-        isActive: true,
-        expiresAt: null,
-        context: null
-      }
-    ]
-  },
-  {
-    id: '2',
-    name: 'Jane Admin',
-    email: 'jane@example.com',
-    avatar: null,
-    isActive: true,
-    createdAt: '2024-01-20T09:00:00Z',
-    lastLogin: '2024-06-12T12:15:00Z',
-    roles: [
-      {
-        id: 'role2',
-        name: 'Administrator',
-        code: 'admin',
-        level: 2,
-        assignedAt: '2024-01-20T09:00:00Z',
-        assignedBy: 'John Super Admin',
-        isActive: true,
-        expiresAt: null,
-        context: null
-      }
-    ]
-  },
-  {
-    id: '3',
-    name: 'Bob Faculty',
-    email: 'bob@example.com',
-    avatar: null,
-    isActive: true,
-    createdAt: '2024-02-01T11:00:00Z',
-    lastLogin: '2024-06-12T08:45:00Z',
-    roles: [
-      {
-        id: 'role3',
-        name: 'Faculty Member',
-        code: 'faculty',
-        level: 3,
-        assignedAt: '2024-02-01T11:00:00Z',
-        assignedBy: 'John Super Admin',
-        isActive: true,
-        expiresAt: null,
-        context: null
-      }
-    ]
-  },
-  {
-    id: '4',
-    name: 'Alice Student',
-    email: 'alice@example.com',
-    avatar: null,
-    isActive: true,
-    createdAt: '2024-02-15T13:00:00Z',
-    lastLogin: '2024-06-12T16:20:00Z',
-    roles: [
-      {
-        id: 'role4',
-        name: 'Student',
-        code: 'student',
-        level: 4,
-        assignedAt: '2024-02-15T13:00:00Z',
-        assignedBy: 'Jane Admin',
-        isActive: true,
-        expiresAt: null,
-        context: null
-      }
-    ]
-  },
-  {
-    id: '5',
-    name: 'Mike No Role',
-    email: 'mike@example.com',
-    avatar: null,
-    isActive: true,
-    createdAt: '2024-03-01T15:00:00Z',
-    lastLogin: '2024-06-10T10:30:00Z',
-    roles: []
-  }
-];
-
-const mockRoles = [
-  {
-    id: 'role1',
-    name: 'Super Administrator',
-    code: 'super_admin',
-    description: 'Complete system access with all permissions',
-    level: 1,
-    userCount: 1,
-    permissionCount: 50,
-    isSystem: true,
-    isActive: true,
-    permissions: [
-      'system:manage', 'users:manage', 'students:manage', 'classes:manage', 
-      'roles:manage', 'permissions:manage', 'audit_logs:read'
-    ]
-  },
-  {
-    id: 'role2',
-    name: 'Administrator',
-    code: 'admin',
-    description: 'Administrative access for daily operations',
-    level: 2,
-    userCount: 1,
-    permissionCount: 35,
-    isSystem: true,
-    isActive: true,
-    permissions: [
-      'users:create', 'users:read', 'users:update', 'users:delete',
-      'students:create', 'students:read', 'students:update', 'students:delete',
-      'classes:create', 'classes:read', 'classes:update', 'classes:delete'
-    ]
-  },
-  {
-    id: 'role3',
-    name: 'Faculty Member',
-    code: 'faculty',
-    description: 'Teaching staff with student and class management',
-    level: 3,
-    userCount: 1,
-    permissionCount: 20,
-    isSystem: true,
-    isActive: true,
-    permissions: [
-      'students:read', 'students:update', 'classes:read', 'classes:update',
-      'attendance:create', 'attendance:read', 'attendance:update'
-    ]
-  },
-  {
-    id: 'role4',
-    name: 'Student',
-    code: 'student',
-    description: 'Student access to view their own information',
-    level: 4,
-    userCount: 1,
-    permissionCount: 8,
-    isSystem: true,
-    isActive: true,
-    permissions: [
-      'profile:read', 'profile:update', 'grades:read', 'attendance:read'
-    ]
-  }
-];
-
-const allPermissions = [
-  { id: '1', name: 'System Manage', code: 'system:manage', module: 'system', action: 'manage' },
-  { id: '2', name: 'User Create', code: 'users:create', module: 'users', action: 'create' },
-  { id: '3', name: 'User Read', code: 'users:read', module: 'users', action: 'read' },
-  { id: '4', name: 'User Update', code: 'users:update', module: 'users', action: 'update' },
-  { id: '5', name: 'User Delete', code: 'users:delete', module: 'users', action: 'delete' },
-  { id: '6', name: 'User Manage', code: 'users:manage', module: 'users', action: 'manage' },
-  { id: '7', name: 'Student Create', code: 'students:create', module: 'students', action: 'create' },
-  { id: '8', name: 'Student Read', code: 'students:read', module: 'students', action: 'read' },
-  { id: '9', name: 'Student Update', code: 'students:update', module: 'students', action: 'update' },
-  { id: '10', name: 'Student Delete', code: 'students:delete', module: 'students', action: 'delete' },
-  { id: '11', name: 'Student Manage', code: 'students:manage', module: 'students', action: 'manage' },
-  { id: '12', name: 'Class Create', code: 'classes:create', module: 'classes', action: 'create' },
-  { id: '13', name: 'Class Read', code: 'classes:read', module: 'classes', action: 'read' },
-  { id: '14', name: 'Class Update', code: 'classes:update', module: 'classes', action: 'update' },
-  { id: '15', name: 'Class Delete', code: 'classes:delete', module: 'classes', action: 'delete' },
-  { id: '16', name: 'Class Manage', code: 'classes:manage', module: 'classes', action: 'manage' },
-  { id: '17', name: 'Role Create', code: 'roles:create', module: 'roles', action: 'create' },
-  { id: '18', name: 'Role Read', code: 'roles:read', module: 'roles', action: 'read' },
-  { id: '19', name: 'Role Update', code: 'roles:update', module: 'roles', action: 'update' },
-  { id: '20', name: 'Role Delete', code: 'roles:delete', module: 'roles', action: 'delete' },
-  { id: '21', name: 'Permission Create', code: 'permissions:create', module: 'permissions', action: 'create' },
-  { id: '22', name: 'Permission Read', code: 'permissions:read', module: 'permissions', action: 'read' },
-  { id: '23', name: 'Permission Update', code: 'permissions:update', module: 'permissions', action: 'update' },
-  { id: '24', name: 'Permission Delete', code: 'permissions:delete', module: 'permissions', action: 'delete' },
-  { id: '25', name: 'Audit Logs Read', code: 'audit_logs:read', module: 'audit_logs', action: 'read' },
-];
+// All data now comes from the database via API calls
 
 function UserRoleAssignmentPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -258,34 +70,53 @@ function UserRoleAssignmentPage() {
   const [deniedPermissions, setDeniedPermissions] = useState<string[]>([]);
   const [expirationDate, setExpirationDate] = useState<string>('');
   const [activeTab, setActiveTab] = useState('assignments');
+  const [editUserRoleOpen, setEditUserRoleOpen] = useState(false);
+  const [selectedUserRole, setSelectedUserRole] = useState<any>(null);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<any>(null);
+  const [selectedRoleForEdit, setSelectedRoleForEdit] = useState<any>(null);
 
   const { toast } = useToast();
   const { isSuperAdmin } = useRBACPermissions();
   
   // API hooks
-  const { data: rolesData } = useRoles();
-  const { data: permissionsData } = usePermissions();
-  const { data: userRolesData } = useUserRoles();
+  const { data: rolesData, isLoading: rolesLoading, error: rolesError } = useRoles();
+  const { data: permissionsData, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
+  const { data: userRolesData, isLoading: userRolesLoading, error: userRolesError } = useUserRoles();
   const { data: userRoleStats } = useUserRoleStats();
   const { data: roleStats } = useRoleStats();
   const assignRoleMutation = useAssignRole();
   const removeRoleMutation = useRemoveRole();
   
-  // Get data from API or fallback to mock data
-  const roles = rolesData?.data || mockRoles;
-  const permissions = permissionsData?.data || allPermissions;
-  const userRoles = userRolesData?.data || [];
+  // Fetch users data
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => getAllUsers({ limit: 1000 }), // Get all users for role assignment
+  });
   
-  // Transform user roles data to match our UI structure
-  const users = mockUsers; // Still using mock users for now since we need user service
+  // Get data from API
+  const roles = rolesData?.data || [];
+  const permissions = permissionsData?.data || [];
+  const userRoles = userRolesData?.data || [];
+  const users = usersData?.data || [];
+
+  // Log API data status for debugging
+  React.useEffect(() => {
+    console.log('User Roles Page Data Status:', {
+      users: users.length,
+      roles: roles.length,
+      permissions: permissions.length,
+      userRoles: userRoles.length,
+      loading: { users: usersLoading, roles: rolesLoading, permissions: permissionsLoading, userRoles: userRolesLoading }
+    });
+  }, [users.length, roles.length, permissions.length, userRoles.length, usersLoading, rolesLoading, permissionsLoading, userRolesLoading]);
 
   // Filter users based on search
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter(user => 
+    return users.filter((user: any) => 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [users, searchTerm]);
 
   // Get role level color
   const getRoleLevelColor = (level: number) => {
@@ -320,11 +151,11 @@ function UserRoleAssignmentPage() {
     }
 
     assignRoleMutation.mutate({
-      userId: selectedUser.id,
+      userId: selectedUser._id || selectedUser.id,
       roleId: selectedRole,
       customPermissions: customPermissions.length > 0 ? customPermissions : undefined,
       deniedPermissions: deniedPermissions.length > 0 ? deniedPermissions : undefined,
-      expiresAt: expirationDate || undefined,
+      expiresAt: expirationDate ? new Date(expirationDate).toISOString() : undefined,
     }, {
       onSuccess: () => {
         setAssignRoleDialogOpen(false);
@@ -333,8 +164,46 @@ function UserRoleAssignmentPage() {
         setCustomPermissions([]);
         setDeniedPermissions([]);
         setExpirationDate('');
+        toast({
+          title: "Role Assigned",
+          description: `Successfully assigned ${roles.find(r => r._id === selectedRole)?.name} to ${selectedUser?.name}`,
+        });
+      },
+      onError: (error: any) => {
+        toast({
+          variant: "destructive",
+          title: "Assignment Failed",
+          description: error.response?.data?.message || "Failed to assign role to user.",
+        });
       }
     });
+  };
+
+  // Handle role removal
+  const handleRemoveRole = (userRoleId: string, userName: string, roleName: string) => {
+    removeRoleMutation.mutate(userRoleId, {
+      onSuccess: () => {
+        toast({
+          title: "Role Removed",
+          description: `Successfully removed ${roleName} from ${userName}`,
+        });
+      },
+      onError: (error: any) => {
+        toast({
+          variant: "destructive",
+          title: "Removal Failed",
+          description: error.response?.data?.message || "Failed to remove role from user.",
+        });
+      }
+    });
+  };
+
+  // Handle edit user role
+  const handleEditUserRole = (userRole: any, user: any, role: any) => {
+    setSelectedUserRole(userRole);
+    setSelectedUserForEdit(user);
+    setSelectedRoleForEdit(role);
+    setEditUserRoleOpen(true);
   };
 
   // Handle permission toggle
@@ -408,9 +277,19 @@ function UserRoleAssignmentPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockUsers.length}</div>
+              <div className="text-2xl font-bold">
+                {usersLoading ? (
+                  <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  users.length
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
-                {mockUsers.filter(u => u.isActive).length} active
+                {usersLoading ? (
+                  <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  `${users.filter((u: any) => u.isActive).length} active`
+                )}
               </p>
             </CardContent>
           </Card>
@@ -422,10 +301,10 @@ function UserRoleAssignmentPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {userRoleStats?.usersWithRoles || mockUsers.filter(u => u.roles.length > 0).length}
+                {userRoleStats?.usersWithRoles || 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                {userRoleStats?.usersWithoutRoles || mockUsers.filter(u => u.roles.length === 0).length} unassigned
+                {userRoleStats?.usersWithoutRoles || 0} unassigned
               </p>
             </CardContent>
           </Card>
@@ -477,6 +356,21 @@ function UserRoleAssignmentPage() {
           </Button>
         </div>
 
+        {/* Error Display */}
+        {(rolesError || permissionsError || userRolesError) && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
+              <h3 className="text-red-800 font-medium">Error Loading Data</h3>
+            </div>
+            <div className="mt-2 text-red-700 text-sm">
+              {rolesError && <p>Roles: {(rolesError as any).message}</p>}
+              {permissionsError && <p>Permissions: {(permissionsError as any).message}</p>}
+              {userRolesError && <p>User Roles: {(userRolesError as any).message}</p>}
+            </div>
+          </div>
+        )}
+
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-3">
@@ -506,12 +400,28 @@ function UserRoleAssignmentPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
+                    {usersLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="h-4 w-4 bg-gray-300 animate-pulse rounded"></div>
+                            <span>Loading users...</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          {searchTerm ? 'No users found matching your search' : 'No users found'}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredUsers.map((user) => (
+                        <TableRow key={user?._id}>
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={user.avatar || undefined} alt={user.name} />
+                              <AvatarImage src={user?.avatar || undefined} alt={user.name} />
                               <AvatarFallback>
                                 {user.name.split(" ").map(n => n[0]).join("").toUpperCase()}
                               </AvatarFallback>
@@ -524,21 +434,56 @@ function UserRoleAssignmentPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {user.roles.length > 0 ? (
-                              user.roles.map((role, index) => (
-                                <Badge 
-                                  key={index} 
-                                  className={getRoleLevelColor(role.level)}
-                                >
-                                  {getRoleIcon(role.level)}
-                                  <span className="ml-1">{role.name}</span>
+                            {(() => {
+                              const userRoleAssignments = userRoles.filter((ur: any) => {
+                                // Handle both populated and non-populated userId
+                                const userId = typeof ur.userId === 'object' ? ur.userId._id : ur.userId;
+                                return userId === user._id;
+                              });
+                              return userRoleAssignments.length > 0 ? (
+                                userRoleAssignments.map((userRole: any) => {
+                                  // Handle both populated and non-populated roleId
+                                  const role = typeof userRole.roleId === 'object' 
+                                    ? userRole.roleId 
+                                    : roles.find(r => r._id === userRole.roleId);
+                                  if (!role) return null;
+                                  return (
+                                    <div key={userRole._id} className="flex items-center gap-1">
+                                      <Badge 
+                                        className={getRoleLevelColor(role.level)}
+                                      >
+                                        {getRoleIcon(role.level)}
+                                        <span className="ml-1">{role.name}</span>
+                                      </Badge>
+                                      <div className="flex space-x-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
+                                          onClick={() => handleEditUserRole(userRole, user, role)}
+                                          title="Edit role assignment"
+                                        >
+                                          <Edit className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                          onClick={() => handleRemoveRole(userRole._id, user.name, role.name)}
+                                          title="Remove role"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <Badge variant="outline" className="text-gray-500">
+                                  No roles assigned
                                 </Badge>
-                              ))
-                            ) : (
-                              <Badge variant="outline" className="text-gray-500">
-                                No roles assigned
-                              </Badge>
-                            )}
+                              );
+                            })()}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -569,7 +514,8 @@ function UserRoleAssignmentPage() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -579,7 +525,34 @@ function UserRoleAssignmentPage() {
           {/* Role Overview Tab */}
           <TabsContent value="roles">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-              {roles.map((role) => (
+              {rolesLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="h-4 w-4 bg-gray-300 animate-pulse rounded"></div>
+                          <div className="h-5 w-24 bg-gray-300 animate-pulse rounded"></div>
+                        </div>
+                        <div className="h-5 w-16 bg-gray-300 animate-pulse rounded"></div>
+                      </div>
+                      <div className="h-4 w-32 bg-gray-300 animate-pulse rounded"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="h-3 w-full bg-gray-300 animate-pulse rounded"></div>
+                        <div className="h-3 w-full bg-gray-300 animate-pulse rounded"></div>
+                        <div className="h-3 w-3/4 bg-gray-300 animate-pulse rounded"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : roles.length === 0 ? (
+                <div className="col-span-2 text-center py-8">
+                  <p className="text-gray-500">No roles found</p>
+                </div>
+              ) : (
+                roles.map((role) => (
                 <Card key={role._id || role.id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -628,7 +601,8 @@ function UserRoleAssignmentPage() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                ))
+              )}
             </div>
           </TabsContent>
 
@@ -643,7 +617,23 @@ function UserRoleAssignmentPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {Object.entries(groupedPermissions).map(([module, permissions]) => (
+                  {permissionsLoading ? (
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <div key={index}>
+                        <div className="h-6 w-32 bg-gray-300 animate-pulse rounded mb-3"></div>
+                        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                          {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-12 bg-gray-300 animate-pulse rounded"></div>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  ) : Object.keys(groupedPermissions).length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No permissions found</p>
+                    </div>
+                  ) : (
+                    Object.entries(groupedPermissions).map(([module, permissions]) => (
                     <div key={module}>
                       <h3 className="text-lg font-semibold mb-3 capitalize">{module} Module</h3>
                       <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -657,7 +647,8 @@ function UserRoleAssignmentPage() {
                         ))}
                       </div>
                     </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -682,21 +673,24 @@ function UserRoleAssignmentPage() {
                 <div className="space-y-2">
                   <Label>Select User</Label>
                   <Select onValueChange={(value) => {
-                    const user = mockUsers.find(u => u.id === value);
+                    const user = users.find((u: any) => u._id === value);
                     setSelectedUser(user);
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a user" />
+                      <SelectValue placeholder={usersLoading ? "Loading users..." : "Choose a user"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockUsers.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          <div className="flex items-center space-x-2">
-                            <span>{user.name}</span>
-                            <span className="text-gray-500">({user.email})</span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {usersLoading ? (
+                        <SelectItem value="loading" disabled>Loading users...</SelectItem>
+                      ) : users.length === 0 ? (
+                        <SelectItem value="no-users" disabled>No users found</SelectItem>
+                      ) : (
+                        users.map((user: any) => (
+                          <SelectItem key={user._id} value={user._id}>
+                            {user.name} ({user.email})
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -710,8 +704,8 @@ function UserRoleAssignmentPage() {
                     <SelectValue placeholder="Choose a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockRoles.map((role) => (
-                      <SelectItem key={role.id} value={role.id}>
+                    {roles.map((role: any) => (
+                      <SelectItem key={role._id} value={role._id}>
                         <div className="flex items-center space-x-2">
                           {getRoleIcon(role.level)}
                           <span>{role.name}</span>
@@ -753,14 +747,14 @@ function UserRoleAssignmentPage() {
                       <h4 className="font-medium mb-2 capitalize">{module}</h4>
                       <div className="grid gap-2 md:grid-cols-2">
                         {permissions.map((permission) => (
-                          <div key={permission.id} className="flex items-center space-x-2">
+                          <div key={(permission as any)._id || (permission as any).id} className="flex items-center space-x-2">
                             <Checkbox
-                              id={`custom-${permission.id}`}
+                              id={`custom-${(permission as any)._id || (permission as any).id}`}
                               checked={customPermissions.includes(permission.code)}
                               onCheckedChange={() => handlePermissionToggle(permission.code, 'custom')}
                             />
                             <Label 
-                              htmlFor={`custom-${permission.id}`}
+                              htmlFor={`custom-${(permission as any)._id || (permission as any).id}`}
                               className="text-sm cursor-pointer"
                             >
                               {permission.name}
@@ -788,14 +782,14 @@ function UserRoleAssignmentPage() {
                       <h4 className="font-medium mb-2 capitalize">{module}</h4>
                       <div className="grid gap-2 md:grid-cols-2">
                         {permissions.map((permission) => (
-                          <div key={permission.id} className="flex items-center space-x-2">
+                          <div key={(permission as any)._id || (permission as any).id} className="flex items-center space-x-2">
                             <Checkbox
-                              id={`denied-${permission.id}`}
+                              id={`denied-${(permission as any)._id || (permission as any).id}`}
                               checked={deniedPermissions.includes(permission.code)}
                               onCheckedChange={() => handlePermissionToggle(permission.code, 'denied')}
                             />
                             <Label 
-                              htmlFor={`denied-${permission.id}`}
+                              htmlFor={`denied-${(permission as any)._id || (permission as any).id}`}
                               className="text-sm cursor-pointer"
                             >
                               {permission.name}
@@ -829,6 +823,15 @@ function UserRoleAssignmentPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Edit User Role Dialog */}
+        <EditUserRoleDialog
+          userRole={selectedUserRole}
+          user={selectedUserForEdit}
+          role={selectedRoleForEdit}
+          open={editUserRoleOpen}
+          onOpenChange={setEditUserRoleOpen}
+        />
       </div>
     </RBACPermissionGuard>
   );

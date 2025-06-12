@@ -1,6 +1,7 @@
 import { api as API } from '@/http/client';
 
 export interface User {
+  roles: any;
   _id: string;
   name: string;
   email: string;

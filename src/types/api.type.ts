@@ -35,6 +35,20 @@ export type UserType = {
     owner: string;
     inviteCode: string;
   };
+  role?: {
+    permissions: string[];
+    roles: Array<{
+      roleId: string;
+      roleName: string;
+      roleCode: string;
+      level: number;
+      context?: {
+        workspaceId?: string;
+        projectId?: string;
+        classId?: string;
+      };
+    }>;
+  };
 };
 
 export type CurrentUserResponseType = {

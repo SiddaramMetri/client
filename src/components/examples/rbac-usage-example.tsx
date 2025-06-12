@@ -46,23 +46,23 @@ const RBACUsageExample: React.FC = () => {
             <h3 className="text-lg font-semibold">1. Permission Guards (Conditional Rendering)</h3>
             
             {/* Basic permission check */}
-            <RBACPermissionGuard permissions="users:create">
+            <RBACPermissionGuard permissions="user:create">
               <div className="bg-green-100 p-3 rounded">
-                ✅ You can see this because you have 'users:create' permission
+                ✅ You can see this because you have 'user:create' permission
               </div>
             </RBACPermissionGuard>
 
             {/* Multiple permissions (ANY) */}
-            <RBACPermissionGuard permissions={["users:create", "students:create"]}>
+            <RBACPermissionGuard permissions={["user:create", "student:create"]}>
               <div className="bg-green-100 p-3 rounded">
-                ✅ You can see this because you have ANY of: users:create OR students:create
+                ✅ You can see this because you have ANY of: user:create OR student:create
               </div>
             </RBACPermissionGuard>
 
             {/* Multiple permissions (ALL) */}
-            <RBACPermissionGuard permissions={["users:read", "users:update"]} requireAll>
+            <RBACPermissionGuard permissions={["user:read", "user:update"]} requireAll>
               <div className="bg-green-100 p-3 rounded">
-                ✅ You can see this because you have ALL of: users:read AND users:update
+                ✅ You can see this because you have ALL of: user:read AND user:update
               </div>
             </RBACPermissionGuard>
 
@@ -96,15 +96,15 @@ const RBACUsageExample: React.FC = () => {
             
             <div className="flex gap-3 flex-wrap">
               {/* Basic permission buttons */}
-              <PermissionButton permissions="users:create">
+              <PermissionButton permissions="user:create">
                 Create User
               </PermissionButton>
 
-              <PermissionButton permissions="users:update">
+              <PermissionButton permissions="user:update">
                 Update User
               </PermissionButton>
 
-              <PermissionButton permissions="users:delete" variant="destructive">
+              <PermissionButton permissions="user:delete" variant="destructive">
                 Delete User
               </PermissionButton>
 
@@ -199,7 +199,7 @@ const RBACUsageExample: React.FC = () => {
             {/* Custom logic using the hook */}
             <div className="bg-gray-100 p-4 rounded">
               <h4 className="font-semibold mb-2">Custom Permission Logic</h4>
-              {hasPermission("users:create") && hasPermission("users:delete") ? (
+              {hasPermission("user:create") && hasPermission("user:delete") ? (
                 <p className="text-green-600">✅ You have full user management permissions</p>
               ) : (
                 <p className="text-orange-600">⚠️ You have limited user management permissions</p>

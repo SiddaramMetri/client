@@ -6,7 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RBACPermissionGuard, AdminOnlyGuard } from '@/components/resuable/permission-guard';
 import { useRBACPermissions } from '@/hooks/use-permissions';
-import { Shield, Users, Key, Settings, Search, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Shield, Users, Key, Settings, Search, Plus, Edit, Trash2, Eye, AlertTriangle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { 
+  useRoles, 
+  usePermissions, 
+  useUserRoles, 
+  useRoleStats, 
+  useUserRoleStats,
+  useUpdateRole,
+  useDeleteRole,
+  useCreatePermission,
+  useUpdatePermission,
+  useDeletePermission
+} from '@/hooks/api/use-rbac';
+import CreateRoleDialog from './components/create-role-dialog';
+import EditRoleDialog from './components/edit-role-dialog';
+import CreatePermissionDialog from './components/create-permission-dialog';
+import RolesManagement from './components/roles-management';
 import {
   Table,
   TableBody,
@@ -24,97 +41,112 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-// Mock data - replace with real API calls
-const mockRoles = [
-  {
-    id: '1',
-    name: 'Super Administrator',
-    code: 'super_admin',
-    description: 'Full system access with all permissions',
-    level: 1,
-    userCount: 2,
-    permissionCount: 50,
-    isSystem: true,
-    isActive: true,
-  },
-  {
-    id: '2',
-    name: 'Administrator',
-    code: 'admin',
-    description: 'Administrative access to manage users and system settings',
-    level: 2,
-    userCount: 5,
-    permissionCount: 35,
-    isSystem: true,
-    isActive: true,
-  },
-  {
-    id: '3',
-    name: 'Faculty',
-    code: 'faculty',
-    description: 'Teaching staff with access to students and classes',
-    level: 3,
-    userCount: 25,
-    permissionCount: 20,
-    isSystem: true,
-    isActive: true,
-  },
-  {
-    id: '4',
-    name: 'Student',
-    code: 'student',
-    description: 'Student access to view their own information',
-    level: 4,
-    userCount: 150,
-    permissionCount: 8,
-    isSystem: true,
-    isActive: true,
-  },
-];
-
-const mockPermissions = [
-  { id: '1', name: 'User Create', code: 'users:create', module: 'users', action: 'create', isSystem: true },
-  { id: '2', name: 'User Read', code: 'users:read', module: 'users', action: 'read', isSystem: true },
-  { id: '3', name: 'User Update', code: 'users:update', module: 'users', action: 'update', isSystem: true },
-  { id: '4', name: 'User Delete', code: 'users:delete', module: 'users', action: 'delete', isSystem: true },
-  { id: '5', name: 'Student Create', code: 'students:create', module: 'students', action: 'create', isSystem: true },
-  { id: '6', name: 'Student Read', code: 'students:read', module: 'students', action: 'read', isSystem: true },
-  { id: '7', name: 'Student Update', code: 'students:update', module: 'students', action: 'update', isSystem: true },
-  { id: '8', name: 'Student Delete', code: 'students:delete', module: 'students', action: 'delete', isSystem: true },
-  { id: '9', name: 'Class Create', code: 'classes:create', module: 'classes', action: 'create', isSystem: true },
-  { id: '10', name: 'Class Read', code: 'classes:read', module: 'classes', action: 'read', isSystem: true },
-  { id: '11', name: 'Class Update', code: 'classes:update', module: 'classes', action: 'update', isSystem: true },
-  { id: '12', name: 'Class Delete', code: 'classes:delete', module: 'classes', action: 'delete', isSystem: true },
-  { id: '13', name: 'Audit Logs Read', code: 'audit_logs:read', module: 'audit_logs', action: 'read', isSystem: true },
-  { id: '14', name: 'System Manage', code: 'system:manage', module: 'system', action: 'manage', isSystem: true },
-];
-
-const mockUserRoles = [
-  { id: '1', userId: 'user1', userName: 'John Admin', userEmail: 'john@example.com', roleName: 'Administrator', assignedAt: '2024-01-15' },
-  { id: '2', userId: 'user2', userName: 'Jane Faculty', userEmail: 'jane@example.com', roleName: 'Faculty', assignedAt: '2024-01-20' },
-  { id: '3', userId: 'user3', userName: 'Bob Student', userEmail: 'bob@example.com', roleName: 'Student', assignedAt: '2024-02-01' },
-];
-
-const PermissionsManagementPage = () => {
-  const { userPermissions, isAdmin, isSuperAdmin } = useRBACPermissions();
+// Replace mock data with real API calls
+function PermissionsManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState<any>(null);
+  const [editRoleOpen, setEditRoleOpen] = useState(false);
+  const [deleteRoleOpen, setDeleteRoleOpen] = useState(false);
+  const [selectedPermission, setSelectedPermission] = useState<any>(null);
+  const [editPermissionOpen, setEditPermissionOpen] = useState(false);
+  const [deletePermissionOpen, setDeletePermissionOpen] = useState(false);
+
+  const { 
+    hasPermission, 
+    userPermissions, 
+    isSuperAdmin, 
+    isAdmin,
+    canCreate,
+    canUpdate,
+    canDelete 
+  } = useRBACPermissions();
+
+  // Fetch data using the RBAC hooks
+  const { data: rolesData, isLoading: rolesLoading, error: rolesError } = useRoles();
+  const { data: permissionsData, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
+  const { data: userRolesData, isLoading: userRolesLoading } = useUserRoles();
+  const { data: roleStats } = useRoleStats();
+  const { data: userRoleStats } = useUserRoleStats();
+
+  // Mutation hooks for CRUD operations
+  const updateRoleMutation = useUpdateRole();
+  const deleteRoleMutation = useDeleteRole();
+  const createPermissionMutation = useCreatePermission();
+  const updatePermissionMutation = useUpdatePermission();
+  const deletePermissionMutation = useDeletePermission();
+
+  const roles = rolesData?.data || [];
+  const permissions = permissionsData?.data || [];
+  const userRoles = userRolesData?.data || [];
+
+  // Log API data status for debugging
+  React.useEffect(() => {
+    console.log('Permissions Page Data Status:', {
+      roles: roles.length,
+      permissions: permissions.length,
+      userRoles: userRoles.length,
+      loading: { roles: rolesLoading, permissions: permissionsLoading, userRoles: userRolesLoading }
+    });
+  }, [roles.length, permissions.length, userRoles.length, rolesLoading, permissionsLoading, userRolesLoading]);
 
   // Filter data based on search
-  const filteredRoles = mockRoles.filter(role => 
+  const filteredRoles = roles.filter((role: any) => 
     role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     role.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredPermissions = mockPermissions.filter(permission => 
+  const filteredPermissions = permissions.filter((permission: any) => 
     permission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     permission.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     permission.module.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredUserRoles = mockUserRoles.filter(userRole => 
-    userRole.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    userRole.userEmail.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUserRoles = userRoles.filter((userRole: any) => 
+    userRole.userId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    userRole.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Group permissions by module for better organization
+  const groupedPermissions = permissions.reduce((acc: any, permission: any) => {
+    const module = permission.module || 'other';
+    if (!acc[module]) {
+      acc[module] = [];
+    }
+    acc[module].push(permission);
+    return acc;
+  }, {});
+
+  // CRUD operation handlers
+  const handleEditRole = (role: any) => {
+    setSelectedRole(role);
+    setEditRoleOpen(true);
+  };
+
+  const handleDeleteRole = (role: any) => {
+    setSelectedRole(role);
+    setDeleteRoleOpen(true);
+  };
+
+  const handleEditPermission = (permission: any) => {
+    setSelectedPermission(permission);
+    setEditPermissionOpen(true);
+  };
+
+  const handleDeletePermission = (permission: any) => {
+    setSelectedPermission(permission);
+    setDeletePermissionOpen(true);
+  };
+
+  const confirmDeleteRole = () => {
+    if (selectedRole) {
+      deleteRoleMutation.mutate(selectedRole._id, {
+        onSuccess: () => {
+          setDeleteRoleOpen(false);
+          setSelectedRole(null);
+        }
+      });
+    }
+  };
 
   return (
     <AdminOnlyGuard fallback={
@@ -149,6 +181,20 @@ const PermissionsManagementPage = () => {
           </div>
         </div>
 
+        {/* Error Display */}
+        {(rolesError || permissionsError) && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
+              <h3 className="text-red-800 font-medium">Error Loading Data</h3>
+            </div>
+            <div className="mt-2 text-red-700 text-sm">
+              {rolesError && <p>Roles: {rolesError.message}</p>}
+              {permissionsError && <p>Permissions: {permissionsError.message}</p>}
+            </div>
+          </div>
+        )}
+
         {/* Overview Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -157,9 +203,19 @@ const PermissionsManagementPage = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockRoles.length}</div>
+              <div className="text-2xl font-bold">
+                {rolesLoading ? (
+                  <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  roleStats?.totalRoles || roles.length
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
-                {mockRoles.filter(r => r.isSystem).length} system roles
+                {rolesLoading ? (
+                  <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  `${roleStats?.systemRoles || roles.filter(r => r.isSystem).length} system roles`
+                )}
               </p>
             </CardContent>
           </Card>
@@ -170,9 +226,9 @@ const PermissionsManagementPage = () => {
               <Key className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockPermissions.length}</div>
+              <div className="text-2xl font-bold">{permissions.length}</div>
               <p className="text-xs text-muted-foreground">
-                {new Set(mockPermissions.map(p => p.module)).size} modules
+                {new Set(permissions.map(p => p.module)).size} modules
               </p>
             </CardContent>
           </Card>
@@ -184,10 +240,10 @@ const PermissionsManagementPage = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {mockRoles.reduce((acc, role) => acc + role.userCount, 0)}
+                {userRoleStats?.usersWithRoles || userRoles.length}
               </div>
               <p className="text-xs text-muted-foreground">
-                Across all roles
+                {userRoleStats?.usersWithoutRoles || 0} unassigned
               </p>
             </CardContent>
           </Card>
@@ -223,8 +279,9 @@ const PermissionsManagementPage = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="roles" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="roles">Roles</TabsTrigger>
+            <TabsTrigger value="roles-management">Roles Management</TabsTrigger>
             <TabsTrigger value="permissions">Permissions</TabsTrigger>
             <TabsTrigger value="user-roles">User Assignments</TabsTrigger>
             <TabsTrigger value="my-permissions">My Permissions</TabsTrigger>
@@ -242,10 +299,12 @@ const PermissionsManagementPage = () => {
                     </CardDescription>
                   </div>
                   <RBACPermissionGuard permissions="roles:create">
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Role
-                    </Button>
+                    <CreateRoleDialog>
+                      <Button>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Role
+                      </Button>
+                    </CreateRoleDialog>
                   </RBACPermissionGuard>
                 </div>
               </CardHeader>
@@ -263,54 +322,87 @@ const PermissionsManagementPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRoles.map((role) => (
-                      <TableRow key={role.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{role.name}</div>
-                            <div className="text-sm text-gray-500">{role.description}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{role.code}</Badge>
-                        </TableCell>
-                        <TableCell>{role.level}</TableCell>
-                        <TableCell>{role.userCount}</TableCell>
-                        <TableCell>{role.permissionCount}</TableCell>
-                        <TableCell>
-                          <Badge variant={role.isActive ? "default" : "secondary"}>
-                            {role.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <RBACPermissionGuard permissions="roles:read">
-                              <Button variant="ghost" size="sm">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </RBACPermissionGuard>
-                            <RBACPermissionGuard permissions="roles:update">
-                              <Button variant="ghost" size="sm">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </RBACPermissionGuard>
-                            <RBACPermissionGuard permissions="roles:delete">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                disabled={role.isSystem}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </RBACPermissionGuard>
-                          </div>
+                    {rolesLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          Loading roles...
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : filteredRoles.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          No roles found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredRoles.map((role: any) => (
+                        <TableRow key={role._id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{role.name}</div>
+                              <div className="text-sm text-gray-500">{role.description || 'No description'}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{role.code}</Badge>
+                          </TableCell>
+                          <TableCell>{role.level}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">
+                              {/* TODO: Calculate user count from userRoles */}
+                              {userRoles.filter((ur: any) => ur.roleId === role._id).length}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">
+                              {role.permissions?.length || 0}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={role.isActive ? "default" : "secondary"}>
+                              {role.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <RBACPermissionGuard permissions="roles:read">
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </RBACPermissionGuard>
+                              <RBACPermissionGuard permissions="roles:update">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleEditRole(role)}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </RBACPermissionGuard>
+                              <RBACPermissionGuard permissions="roles:delete">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  disabled={role.isSystem}
+                                  onClick={() => handleDeleteRole(role)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </RBACPermissionGuard>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Enhanced Roles Management Tab */}
+          <TabsContent value="roles-management">
+            <RolesManagement />
           </TabsContent>
 
           {/* Permissions Tab */}
@@ -325,10 +417,12 @@ const PermissionsManagementPage = () => {
                     </CardDescription>
                   </div>
                   <RBACPermissionGuard permissions="permissions:create">
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Permission
-                    </Button>
+                    <CreatePermissionDialog>
+                      <Button>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Permission
+                      </Button>
+                    </CreatePermissionDialog>
                   </RBACPermissionGuard>
                 </div>
               </CardHeader>
@@ -345,50 +439,69 @@ const PermissionsManagementPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPermissions.map((permission) => (
-                      <TableRow key={permission.id}>
-                        <TableCell className="font-medium">{permission.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="font-mono text-xs">
-                            {permission.code}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge>{permission.module}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{permission.action}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={permission.isSystem ? "default" : "outline"}>
-                            {permission.isSystem ? "System" : "Custom"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <RBACPermissionGuard permissions="permissions:read">
-                              <Button variant="ghost" size="sm">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </RBACPermissionGuard>
-                            <RBACPermissionGuard permissions="permissions:update">
-                              <Button variant="ghost" size="sm">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </RBACPermissionGuard>
-                            <RBACPermissionGuard permissions="permissions:delete">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                disabled={permission.isSystem}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </RBACPermissionGuard>
-                          </div>
+                    {permissionsLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          Loading permissions...
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : filteredPermissions.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          No permissions found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredPermissions.map((permission) => (
+                        <TableRow key={permission._id || permission.id}>
+                          <TableCell className="font-medium">{permission.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {permission.code}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="capitalize">{permission.module}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="capitalize">{permission.action}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={permission.isSystem ? "default" : "outline"}>
+                              {permission.isSystem ? "System" : "Custom"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <RBACPermissionGuard permissions="permissions:read">
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </RBACPermissionGuard>
+                              <RBACPermissionGuard permissions="permissions:update">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleEditPermission(permission)}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </RBACPermissionGuard>
+                              <RBACPermissionGuard permissions="permissions:delete">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  disabled={permission.isSystem}
+                                  onClick={() => handleDeletePermission(permission)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </RBACPermissionGuard>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -407,7 +520,7 @@ const PermissionsManagementPage = () => {
                     </CardDescription>
                   </div>
                   <RBACPermissionGuard permissions="user_roles:create">
-                    <Button>
+                    <Button onClick={() => window.location.href = '/dashboard/user-roles'}>
                       <Plus className="w-4 h-4 mr-2" />
                       Assign Role
                     </Button>
@@ -426,14 +539,33 @@ const PermissionsManagementPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUserRoles.map((userRole) => (
-                      <TableRow key={userRole.id}>
-                        <TableCell className="font-medium">{userRole.userName}</TableCell>
-                        <TableCell>{userRole.userEmail}</TableCell>
-                        <TableCell>
-                          <Badge>{userRole.roleName}</Badge>
+                    {userRolesLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          Loading user role assignments...
                         </TableCell>
-                        <TableCell>{userRole.assignedAt}</TableCell>
+                      </TableRow>
+                    ) : filteredUserRoles.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          No user role assignments found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredUserRoles.map((userRole) => (
+                        <TableRow key={userRole._id}>
+                          <TableCell className="font-medium">
+                            {userRole.userId?.name || 'Unknown User'}
+                          </TableCell>
+                          <TableCell>
+                            {userRole.userId?.email || 'No email'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge>{userRole.roleId?.name || 'Unknown Role'}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {userRole.assignedAt ? new Date(userRole.assignedAt).toLocaleDateString() : 'N/A'}
+                          </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <RBACPermissionGuard permissions="user_roles:update">
@@ -448,8 +580,9 @@ const PermissionsManagementPage = () => {
                             </RBACPermissionGuard>
                           </div>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -507,6 +640,70 @@ const PermissionsManagementPage = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Delete Role Confirmation Dialog */}
+        <Dialog open={deleteRoleOpen} onOpenChange={setDeleteRoleOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Role</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the role "{selectedRole?.name}"? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setDeleteRoleOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={confirmDeleteRole}
+                disabled={deleteRoleMutation.isPending}
+              >
+                {deleteRoleMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Permission Confirmation Dialog */}
+        <Dialog open={deletePermissionOpen} onOpenChange={setDeletePermissionOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Permission</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the permission "{selectedPermission?.name}"? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setDeletePermissionOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  if (selectedPermission) {
+                    deletePermissionMutation.mutate(selectedPermission._id, {
+                      onSuccess: () => {
+                        setDeletePermissionOpen(false);
+                        setSelectedPermission(null);
+                      }
+                    });
+                  }
+                }}
+                disabled={deletePermissionMutation.isPending}
+              >
+                {deletePermissionMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Role Dialog */}
+        <EditRoleDialog 
+          role={selectedRole}
+          open={editRoleOpen}
+          onOpenChange={setEditRoleOpen}
+        />
       </div>
     </AdminOnlyGuard>
   );

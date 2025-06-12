@@ -316,13 +316,13 @@ export const columns = ({
       const ActionsCell = () => {
         const { hasPermission } = useRBACPermissions()
         
-        const canView = hasPermission('students:read')
-        const canEdit = hasPermission('students:update')
-        const canDelete = hasPermission('students:delete')
-        const canToggleStatus = hasPermission('students:manage')
-        const canDownload = hasPermission('students:read')
-        const canCommunicate = hasPermission('students:communicate') || hasPermission('students:manage')
-        const canViewReports = hasPermission('reports:read') || hasPermission('students:read')
+        const canView = hasPermission('student:read')
+        const canEdit = hasPermission('student:update')
+        const canDelete = hasPermission('student:delete')
+        const canToggleStatus = hasPermission('student:manage')
+        const canDownload = hasPermission('student:read')
+        const canCommunicate = hasPermission('students:communicate') || hasPermission('student:manage')
+        const canViewReports = hasPermission('reports:read') || hasPermission('student:read')
         
         // If no permissions available, don't show actions
         if (!canView && !canEdit && !canDelete && !canToggleStatus && !canDownload && !canCommunicate && !canViewReports) {

@@ -107,6 +107,15 @@ export const usePermissions = (params?: any) => {
   });
 };
 
+export const usePermission = (id: string) => {
+  return useQuery({
+    queryKey: ['permissions', id],
+    queryFn: () => rbacService.permissions.getPermissionById(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const useCreatePermission = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -125,6 +134,53 @@ export const useCreatePermission = () => {
         variant: 'destructive',
         title: 'Error',
         description: error.response?.data?.message || 'Failed to create permission.',
+      });
+    },
+  });
+};
+
+export const useUpdatePermission = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      rbacService.permissions.updatePermission(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['permissions'] });
+      toast({
+        title: 'Permission Updated',
+        description: 'Permission has been updated successfully.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to update permission.',
+      });
+    },
+  });
+};
+
+export const useDeletePermission = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: rbacService.permissions.deletePermission,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['permissions'] });
+      toast({
+        title: 'Permission Deleted',
+        description: 'Permission has been deleted successfully.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to delete permission.',
       });
     },
   });
@@ -183,6 +239,31 @@ export const useRemoveRole = () => {
         variant: 'destructive',
         title: 'Error',
         description: error.response?.data?.message || 'Failed to remove role.',
+      });
+    },
+  });
+};
+
+export const useUpdateUserRole = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      rbacService.userRoles.updateUserRole(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast({
+        title: 'Assignment Updated',
+        description: 'User role assignment has been updated successfully.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to update user role assignment.',
       });
     },
   });

@@ -33,9 +33,9 @@ const ActionsCell = ({ user, onView, onEdit, onDelete, onToggleStatus }: Actions
   const canAccessOwn = canAccessOwnResource(user._id);
   
   // Determine what actions are available
-  const canView = hasPermission('users:read') || canAccessOwn;
-  const canEdit = hasPermission('users:update') || canAccessOwn;
-  const canDelete = hasPermission('users:delete') && !canAccessOwn; // Can't delete yourself
+  const canView = hasPermission('user:read') || canAccessOwn;
+  const canEdit = hasPermission('user:update') || canAccessOwn;
+  const canDelete = hasPermission('user:delete') && !canAccessOwn; // Can't delete yourself
   const canToggleStatus = hasPermission('users:manage') && !canAccessOwn; // Can't toggle own status
   
   // If no actions are available, don't show the menu
@@ -177,6 +177,45 @@ export const createColumns = (actions: {
         </div>
       );
     },
+  },
+  {
+    id: "roles",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Roles" />
+    ),
+    cell: ({ row }) => {
+      const user = row.original;
+      const roles = user.role?.roles || [];
+      
+      // Debug logging to check user data structure
+      console.log('User role data:', {
+        userId: user._id,
+        userName: user.name,
+        userRole: user.role,
+        roles: roles,
+        rolesLength: roles.length
+      });
+      
+      if (roles.length === 0) {
+        return <Badge variant="outline">No Roles</Badge>;
+      }
+      
+      return (
+        <div className="flex flex-wrap gap-1">
+          {roles.slice(0, 2).map((userRole) => (
+            <Badge key={userRole.roleId} variant="secondary" className="text-xs">
+              {userRole.roleName}
+            </Badge>
+          ))}
+          {roles.length > 2 && (
+            <Badge variant="outline" className="text-xs">
+              +{roles.length - 2} more
+            </Badge>
+          )}
+        </div>
+      );
+    },
+    enableSorting: false,
   },
   {
     id: "status",

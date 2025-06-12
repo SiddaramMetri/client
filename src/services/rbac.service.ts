@@ -113,9 +113,23 @@ export const permissionService = {
     return response.data;
   },
 
+  getPermissionById: async (id: string): Promise<Permission> => {
+    const response = await API.get(`/rbac/permissions/${id}`);
+    return response.data.data;
+  },
+
   createPermission: async (permissionData: Partial<Permission>): Promise<Permission> => {
     const response = await API.post('/rbac/permissions', permissionData);
     return response.data.data;
+  },
+
+  updatePermission: async (id: string, permissionData: Partial<Permission>): Promise<Permission> => {
+    const response = await API.put(`/rbac/permissions/${id}`, permissionData);
+    return response.data.data;
+  },
+
+  deletePermission: async (id: string): Promise<void> => {
+    await API.delete(`/rbac/permissions/${id}`);
   }
 };
 
@@ -128,6 +142,11 @@ export const userRoleService = {
 
   assignRole: async (assignmentData: UserRoleAssignmentRequest): Promise<UserRole> => {
     const response = await API.post('/rbac/user-roles', assignmentData);
+    return response.data.data;
+  },
+
+  updateUserRole: async (userRoleId: string, updateData: any): Promise<UserRole> => {
+    const response = await API.put(`/rbac/user-roles/${userRoleId}`, updateData);
     return response.data.data;
   },
 

@@ -126,7 +126,7 @@ function StudentsPage() {
 
   // Action handlers with permission checks
   const handleOpenAddDialog = useCallback(() => {
-    if (!hasPermission('students:create')) {
+    if (!hasPermission('student:create')) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -138,7 +138,7 @@ function StudentsPage() {
   }, [hasPermission, toast]);
 
   const handleOpenEditDialog = useCallback((student: Task) => {
-    if (!hasPermission('students:update')) {
+    if (!hasPermission('student:update')) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -151,7 +151,7 @@ function StudentsPage() {
   }, [hasPermission, toast]);
 
   const handleOpenViewDialog = useCallback((student: Task) => {
-    if (!hasPermission('students:read')) {
+    if (!hasPermission('student:read')) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -164,7 +164,7 @@ function StudentsPage() {
   }, [hasPermission, toast]);
 
   const handleOpenDeleteDialog = useCallback((student: Task) => {
-    if (!hasPermission('students:delete')) {
+    if (!hasPermission('student:delete')) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -319,7 +319,7 @@ Parent Mobile: ${student.parentMobile}
             </p>
           </div>
           <div className="flex items-center space-x-2 flex-wrap gap-2">
-            <RBACPermissionGuard permissions="students:create">
+            <RBACPermissionGuard permissions="student:create">
               <Button
                 onClick={handleOpenAddDialog}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600"
@@ -329,14 +329,14 @@ Parent Mobile: ${student.parentMobile}
               </Button>
             </RBACPermissionGuard>
             
-            <RBACPermissionGuard permissions="students:create">
+            <RBACPermissionGuard permissions="student:create">
               <Button variant="outline" onClick={handleUploadClick}>
                 <Upload className="mr-2 h-4 w-4" />
                 Bulk Upload
               </Button>
             </RBACPermissionGuard>
             
-            <RBACPermissionGuard permissions="students:read">
+            <RBACPermissionGuard permissions="student:read">
               <Button variant="outline" onClick={handleDownloadTemplate}>
                 <Download className="mr-2 h-4 w-4" />
                 Template
@@ -470,7 +470,7 @@ Parent Mobile: ${student.parentMobile}
           </Tabs>
         </div>
         {/* Dialog Components - Protected by permissions */}
-        <RBACPermissionGuard permissions="students:create">
+        <RBACPermissionGuard permissions="student:create">
           <StudentRegistrationDialog
             open={addDialogOpen}
             onOpenChange={setAddDialogOpen}
@@ -478,7 +478,7 @@ Parent Mobile: ${student.parentMobile}
           />
         </RBACPermissionGuard>
 
-        <RBACPermissionGuard permissions="students:update">
+        <RBACPermissionGuard permissions="student:update">
           <EditStudentDialog
             open={editDialogOpen}
             onOpenChange={setEditDialogOpen}
@@ -487,7 +487,7 @@ Parent Mobile: ${student.parentMobile}
           />
         </RBACPermissionGuard>
 
-        <RBACPermissionGuard permissions="students:read">
+        <RBACPermissionGuard permissions="student:read">
           <ViewStudentDialog
             open={viewDialogOpen}
             onOpenChange={setViewDialogOpen}
@@ -495,7 +495,7 @@ Parent Mobile: ${student.parentMobile}
           />
         </RBACPermissionGuard>
 
-        <RBACPermissionGuard permissions="students:delete">
+        <RBACPermissionGuard permissions="student:delete">
           <DeleteStudentDialog
             open={deleteDialogOpen}
             onOpenChange={setDeleteDialogOpen}
@@ -509,7 +509,7 @@ Parent Mobile: ${student.parentMobile}
           />
         </RBACPermissionGuard>
 
-        <RBACPermissionGuard permissions="students:create">
+        <RBACPermissionGuard permissions="student:create">
           <UploadStudentsDialog
             open={uploadDialogOpen}
             onOpenChange={setUploadDialogOpen}
@@ -523,7 +523,7 @@ Parent Mobile: ${student.parentMobile}
 
 // Export page with RBAC protection
 export default withRBACPermission(StudentsPage, {
-  permissions: 'students:read',
+  permissions: 'student:read',
   redirectTo: '/dashboard',
   fallbackComponent: () => (
     <div className="flex items-center justify-center h-64">
@@ -532,7 +532,7 @@ export default withRBACPermission(StudentsPage, {
           <Shield className="mx-auto h-12 w-12 text-red-500 mb-4" />
           <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
           <p className="text-gray-600">You don't have permission to access student management.</p>
-          <p className="text-sm text-gray-500 mt-2">Required permission: students:read</p>
+          <p className="text-sm text-gray-500 mt-2">Required permission: student:read</p>
         </CardContent>
       </Card>
     </div>

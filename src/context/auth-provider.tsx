@@ -8,7 +8,7 @@ import { createContext, useContext } from "react";
 type AuthContextType = {
   user?: UserType;
   workspace?: WorkspaceType;
-  hasPermission: (permission: PermissionType) => boolean;
+  hasPermission: (permission: string) => boolean;
   error: any;
   isLoading: boolean;
   isFetching: boolean;
@@ -33,13 +33,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   } = useAuth();
   const user = authData?.user;
 
+  // Implement proper permission checking
+  const hasPermission = (permission: string): boolean => {
+    if (!user) return false;
+    
+    // Check if user has the specific permission
+    const userPermissions = user.role?.permissions || [];
+    return userPermissions.includes(permission);
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
         workspace: undefined,
-        hasPermission: () => true,
+        hasPermission,
         error: authError,
         isLoading,
         isFetching,

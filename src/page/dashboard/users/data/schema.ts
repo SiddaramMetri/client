@@ -13,7 +13,21 @@ export const userSchema = z.object({
   currentWorkspace: z.object({
     _id: z.string(),
     name: z.string()
-  }).nullable().optional()
+  }).nullable().optional(),
+  role: z.object({
+    permissions: z.array(z.string()),
+    roles: z.array(z.object({
+      roleId: z.string(),
+      roleName: z.string(),
+      roleCode: z.string(),
+      level: z.number(),
+      context: z.object({
+        workspaceId: z.string().optional(),
+        projectId: z.string().optional(),
+        classId: z.string().optional()
+      }).optional()
+    }))
+  }).optional()
 })
 
 export type User = z.infer<typeof userSchema>

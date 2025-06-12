@@ -117,7 +117,7 @@ function UsersPage() {
 
   // Action handlers with permission checks
   const handleView = (user: User) => {
-    if (!hasPermission('users:read')) {
+    if (!hasPermission('user:read')) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -130,7 +130,7 @@ function UsersPage() {
   };
 
   const handleEdit = (user: User) => {
-    if (!hasPermission('users:update')) {
+    if (!hasPermission('user:update')) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -142,7 +142,7 @@ function UsersPage() {
   };
 
   const handleDelete = async (user: User) => {
-    if (!hasPermission('users:delete')) {
+    if (!hasPermission('user:delete')) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -226,7 +226,7 @@ function UsersPage() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <RBACPermissionGuard permissions="users:create">
+            <RBACPermissionGuard permissions="user:create">
               <Button
                 size="sm"
                 onClick={onOpenAdd}
@@ -237,7 +237,7 @@ function UsersPage() {
               </Button>
             </RBACPermissionGuard>
             
-            <RBACPermissionGuard permissions="users:read">
+            <RBACPermissionGuard permissions="user:read">
               <Button
                 variant="outline"
                 size="sm"
@@ -253,7 +253,7 @@ function UsersPage() {
           </div>
         </div>
 
-        <RBACPermissionGuard permissions="users:read">
+        <RBACPermissionGuard permissions="user:read">
           <div>
             <CompactStatsCards statsData={stats} />
           </div>
@@ -310,11 +310,11 @@ function UsersPage() {
           )}
         </div>
         {/* Modals - Protected by permissions */}
-        <RBACPermissionGuard permissions="users:create">
+        <RBACPermissionGuard permissions="user:create">
           <AddUserDialog />
         </RBACPermissionGuard>
         
-        <RBACPermissionGuard permissions="users:update">
+        <RBACPermissionGuard permissions="user:update">
           <EditUserDialog />
         </RBACPermissionGuard>
       </div>
@@ -324,7 +324,7 @@ function UsersPage() {
 
 // Export page with RBAC protection
 export default withRBACPermission(UsersPage, {
-  permissions: 'users:read',
+  permissions: 'user:read',
   redirectTo: '/dashboard',
   fallbackComponent: () => (
     <div className="flex items-center justify-center h-64">
@@ -333,7 +333,7 @@ export default withRBACPermission(UsersPage, {
           <Shield className="mx-auto h-12 w-12 text-red-500 mb-4" />
           <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
           <p className="text-gray-600">You don't have permission to access user management.</p>
-          <p className="text-sm text-gray-500 mt-2">Required permission: users:read</p>
+          <p className="text-sm text-gray-500 mt-2">Required permission: user:read</p>
         </CardContent>
       </Card>
     </div>
