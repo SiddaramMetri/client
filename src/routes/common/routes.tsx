@@ -13,6 +13,8 @@ import StudentsPage from "@/page/dashboard/students";
 import ClassesPage from "@/page/dashboard/classes";
 import EnhancedAttendancePage from "@/page/dashboard/attendance/enhanced-attendance-page";
 import AuditLogsPage from "@/page/dashboard/audit-logs";
+import UserRoleAssignmentPage from "@/page/dashboard/user-roles";
+import PermissionsManagementPage from "@/page/dashboard/permissions";
 
 export const authenticationRoutePaths = [
   { path: AUTH_ROUTES.SIGN_IN, element: <SignIn /> },
@@ -27,6 +29,8 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.STUDENTS, element: <StudentsPage /> },
   { path: PROTECTED_ROUTES.ATTENDANCE, element: <EnhancedAttendancePage /> },
   { path: PROTECTED_ROUTES.AUDIT_LOGS, element: <AuditLogsPage /> },
+  { path: PROTECTED_ROUTES.USER_ROLES, element: <UserRoleAssignmentPage /> },
+  { path: PROTECTED_ROUTES.PERMISSIONS, element: <PermissionsManagementPage /> },
   { path: PROTECTED_ROUTES.TASKS, element: <Tasks /> },
   { path: PROTECTED_ROUTES.MEMBERS, element: <Members /> },
   { path: PROTECTED_ROUTES.SETTINGS, element: <Settings /> },

@@ -25,6 +25,7 @@ import { Loader } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
+import { useEffect } from "react";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -34,6 +35,52 @@ const SignIn = () => {
   const { mutate, isPending } = useMutation({
     mutationFn: loginMutationFn,
   });
+
+  // Handle OAuth error messages from URL parameters
+  useEffect(() => {
+    const oauthStatus = searchParams.get("oauth_status");
+    const oauthError = searchParams.get("oauth_error");
+    const oauthMessage = searchParams.get("oauth_message");
+
+    if (oauthStatus === "failure" && oauthError) {
+      let title = "Authentication Failed";
+      let description = "We couldn't sign you in with Google. Please try again.";
+
+      switch (oauthError) {
+        case "not_registered":
+          title = "Account Not Registered";
+          description = "Your account is not registered in our system. Please contact your administrator to create your account before attempting to login with Google.";
+          break;
+        case "no_workspace":
+          title = "No Workspace Found";
+          description = "Your account doesn't have access to any workspace. Please contact your administrator to set up your workspace.";
+          break;
+        case "auth_failed":
+        default:
+          if (oauthMessage) {
+            description = decodeURIComponent(oauthMessage);
+          }
+      }
+
+      toast({
+        title,
+        description,
+        variant: "destructive",
+      });
+
+      // Clean up URL parameters after showing the error
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("oauth_status");
+      newSearchParams.delete("oauth_error");
+      newSearchParams.delete("oauth_message");
+      
+      const newUrl = newSearchParams.toString() 
+        ? `${window.location.pathname}?${newSearchParams.toString()}`
+        : window.location.pathname;
+      
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, [searchParams, toast]);
 
   const formSchema = z.object({
     email: z.string().trim().email("Invalid email address").min(1, {
@@ -63,9 +110,30 @@ const SignIn = () => {
         navigate(decodedUrl || `/dashboard`);
       },
       onError: (error) => {
+        let description = error.message;
+        let action = undefined;
+        
+        // If error suggests user needs to sign up
+        if (error.message.includes("sign up") || error.message.includes("No account found")) {
+          action = (
+            <div className="flex gap-2 mt-2">
+              <Link to="/sign-up" className="text-sm underline">
+                Sign up here
+              </Link>
+            </div>
+          );
+        }
+        
+        // If error suggests using Google login
+        if (error.message.includes("Google")) {
+          description = error.message + " Use the 'Login with Google' button above.";
+        }
+        
         toast({
-          title: "Error",
-          description: error.message,
+          title: "Login Failed",
+          description,
+          variant: "destructive",
+          action,
         });
       },
     });

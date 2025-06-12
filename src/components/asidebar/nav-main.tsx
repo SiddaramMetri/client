@@ -71,6 +71,16 @@ export function NavMain() {
       icon: CheckCircle,
     },
     {
+      title: "User Roles",
+      url: `/dashboard/user-roles`,
+      icon: Users,
+    },
+    {
+      title: "Permissions",
+      url: `/dashboard/permissions`,
+      icon: Users,
+    },
+    {
       title: "Members",
       url: `/dashboard/members`,
       icon: Users,
