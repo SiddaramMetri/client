@@ -41,6 +41,55 @@ em-emoji-picker {
   background-color: darkgray; /* Hover effect */
 }
 
+/* Right-side sliding dialog animations */
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-to-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.data-\[state\=open\]\:slide-in-from-right[data-state="open"] {
+  animation: slide-in-from-right 300ms ease-out;
+}
+
+.data-\[state\=closed\]\:slide-out-to-right[data-state="closed"] {
+  animation: slide-out-to-right 300ms ease-in;
+}
+
+/* Improved permissions grid styling */
+.permissions-table {
+  border-collapse: collapse;
+}
+
+.permissions-table tbody tr:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.permissions-table th {
+  position: sticky;
+  top: 0;
+  background: white;
+  border-bottom: 2px solid #e5e7eb;
+  z-index: 10;
+}
+
+/* Prevent modal content from scrolling when dialog is open */
+.modal-open {
+  overflow: hidden !important;
+}
+
 /* @layer base {
   :root {
     --background: 0 0% 100%;

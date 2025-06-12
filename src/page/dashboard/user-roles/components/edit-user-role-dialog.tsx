@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -18,21 +21,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Save, Loader2, User, Shield, Calendar, Clock, Edit3 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
-import { useQuery } from '@tanstack/react-query';
-import { permissionService } from '@/services/rbac.service';
 import { useUpdateUserRole } from '@/hooks/api/use-rbac';
+import { permissionService } from '@/services/rbac.service';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { Calendar, Clock, Edit3, Loader2, Save, Shield, User } from 'lucide-react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const editUserRoleSchema = z.object({
   customPermissions: z.array(z.string()),
@@ -308,44 +308,47 @@ export default function EditUserRoleDialog({
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {Object.entries(groupedPermissions).map(([module, modulePermissions]: [string, any[]]) => (
-                          <div key={module} className="space-y-2">
-                            <h4 className="font-medium text-sm text-gray-700 uppercase tracking-wide">
-                              {module}
-                            </h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {modulePermissions.map((permission) => (
-                                <div key={permission._id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    checked={field.value.includes(permission.code)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        field.onChange([...field.value, permission.code]);
-                                      } else {
-                                        field.onChange(field.value.filter((p: string) => p !== permission.code));
-                                      }
-                                    }}
-                                    disabled={rolePermissions.includes(permission.code)}
-                                  />
-                                  <div className="flex-1">
-                                    <div className="text-sm font-medium">{permission.name}</div>
-                                    <div className="text-xs text-gray-500">{permission.description}</div>
-                                    <div className="flex items-center space-x-1 mt-1">
-                                      <Badge variant="outline" className="text-xs">
-                                        {permission.code}
-                                      </Badge>
-                                      {rolePermissions.includes(permission.code) && (
-                                        <Badge variant="secondary" className="text-xs">
-                                          Role Default
+                        {Object.entries(groupedPermissions).map(([module, modulePermissions]) => {
+                          const permissions = modulePermissions as any[];
+                          return (
+                            <div key={module} className="space-y-2">
+                              <h4 className="font-medium text-sm text-gray-700 uppercase tracking-wide">
+                                {module}
+                              </h4>
+                              <div className="grid grid-cols-2 gap-2">
+                                {permissions.map((permission) => (
+                                  <div key={permission._id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      checked={field.value.includes(permission.code)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          field.onChange([...field.value, permission.code]);
+                                        } else {
+                                          field.onChange(field.value.filter((p: string) => p !== permission.code));
+                                        }
+                                      }}
+                                      disabled={rolePermissions.includes(permission.code)}
+                                    />
+                                    <div className="flex-1">
+                                      <div className="text-sm font-medium">{permission.name}</div>
+                                      <div className="text-xs text-gray-500">{permission.description}</div>
+                                      <div className="flex items-center space-x-1 mt-1">
+                                        <Badge variant="outline" className="text-xs">
+                                          {permission.code}
                                         </Badge>
-                                      )}
+                                        {rolePermissions.includes(permission.code) && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            Role Default
+                                          </Badge>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -372,35 +375,38 @@ export default function EditUserRoleDialog({
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {Object.entries(groupedPermissions).map(([module, modulePermissions]: [string, any[]]) => (
-                          <div key={module} className="space-y-2">
-                            <h4 className="font-medium text-sm text-gray-700 uppercase tracking-wide">
-                              {module}
-                            </h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {modulePermissions.map((permission) => (
-                                <div key={permission._id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    checked={field.value.includes(permission.code)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        field.onChange([...field.value, permission.code]);
-                                      } else {
-                                        field.onChange(field.value.filter((p: string) => p !== permission.code));
-                                      }
-                                    }}
-                                  />
-                                  <div className="flex-1">
-                                    <div className="text-sm font-medium">{permission.name}</div>
-                                    <Badge variant="outline" className="text-xs mt-1">
-                                      {permission.code}
-                                    </Badge>
+                        {Object.entries(groupedPermissions).map(([module, modulePermissions]) => {
+                          const typedPermissions = modulePermissions as any[];
+                          return (
+                            <div key={module} className="space-y-2">
+                              <h4 className="font-medium text-sm text-gray-700 uppercase tracking-wide">
+                                {module}
+                              </h4>
+                              <div className="grid grid-cols-2 gap-2">
+                                {typedPermissions.map((permission) => (
+                                  <div key={permission._id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      checked={field.value.includes(permission.code)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          field.onChange([...field.value, permission.code]);
+                                        } else {
+                                          field.onChange(field.value.filter((p: string) => p !== permission.code));
+                                        }
+                                      }}
+                                    />
+                                    <div className="flex-1">
+                                      <div className="text-sm font-medium">{permission.name}</div>
+                                      <Badge variant="outline" className="text-xs mt-1">
+                                        {permission.code}
+                                      </Badge>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

@@ -7,7 +7,7 @@ import RolesManagement from '../permissions/components/roles-management';
 function RolesPage() {
   return (
     <RBACPermissionGuard 
-      permissions={["roles:read", "roles:create", "roles:update"]}
+      permissions={["role:read", "role:create", "role:update"]}
       requireAll={false}
       fallback={
         <div className="flex items-center justify-center h-64">
@@ -16,7 +16,7 @@ function RolesPage() {
               <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
               <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
               <p className="text-gray-600">You don't have permission to access role management.</p>
-              <p className="text-sm text-gray-500 mt-2">Required permissions: roles:read, roles:create, or roles:update</p>
+              <p className="text-sm text-gray-500 mt-2">Required permissions: role:read, role:create, or role:update</p>
             </CardContent>
           </Card>
         </div>

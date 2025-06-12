@@ -190,7 +190,7 @@ export default function ClassesPage() {
             </div>
           ) : (
             <DataTable
-              data={classes as unknown as Class[]}
+              data={classes as any[]}
               columns={columns}
               statuses={[
                 {

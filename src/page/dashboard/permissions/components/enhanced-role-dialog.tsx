@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -19,10 +20,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -31,14 +29,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Plus, Save, Loader2, Shield, Users, Crown, AlertTriangle, CheckCircle2, Search, Filter } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { useCreateRole, useUpdateRole, usePermissions } from '@/hooks/api/use-rbac';
+import { useAllPermissions, useCreateRole, useUpdateRole } from '@/hooks/api/use-rbac';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { AlertTriangle, CheckCircle2, Crown, Loader2, Save, Search, Shield, Users } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const roleSchema = z.object({
   name: z.string().min(2, 'Role name must be at least 2 characters'),
@@ -78,7 +78,7 @@ export default function EnhancedRoleDialog({
   const [selectedModule, setSelectedModule] = useState<string>('all');
   const { toast } = useToast();
   
-  const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
+  const { data: permissionsData, isLoading: permissionsLoading } = useAllPermissions();
   const createRoleMutation = useCreateRole();
   const updateRoleMutation = useUpdateRole();
   

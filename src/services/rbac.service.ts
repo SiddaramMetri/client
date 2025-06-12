@@ -113,6 +113,11 @@ export const permissionService = {
     return response.data;
   },
 
+  getAllPermissionsWithoutPagination: async (): Promise<{ data: Permission[]; total: number }> => {
+    const response = await API.get('/rbac/permissions/all');
+    return response.data;
+  },
+
   getPermissionById: async (id: string): Promise<Permission> => {
     const response = await API.get(`/rbac/permissions/${id}`);
     return response.data.data;

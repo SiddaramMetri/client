@@ -47,10 +47,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { RBACPermissionGuard } from '@/components/resuable/permission-guard';
 import { useRoles, useDeleteRole } from '@/hooks/api/use-rbac';
 import EnhancedRoleDialog from './enhanced-role-dialog';
+import EditRoleDialog from './edit-role-dialog';
+import CreateRoleDialog from './create-role-dialog';
 
 export default function RolesManagement() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<any>(null);
@@ -97,7 +98,7 @@ export default function RolesManagement() {
       code: `${role.code}_copy`,
       isSystem: false, // Duplicated roles are never system roles
     });
-    setCreateDialogOpen(true);
+    // setCreateDialogOpen(true);
   };
 
   const confirmDelete = () => {
@@ -123,7 +124,7 @@ export default function RolesManagement() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -132,11 +133,8 @@ export default function RolesManagement() {
             Create and manage user roles with specific permission sets
           </p>
         </div>
-        <RBACPermissionGuard permissions="roles:create">
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Role
-          </Button>
+        <RBACPermissionGuard permissions="role:create">
+          <CreateRoleDialog />
         </RBACPermissionGuard>
       </div>
 
@@ -281,26 +279,26 @@ export default function RolesManagement() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <RBACPermissionGuard permissions="roles:read">
+                            <RBACPermissionGuard permissions="role:read">
                               <DropdownMenuItem>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
                             </RBACPermissionGuard>
-                            <RBACPermissionGuard permissions="roles:update">
+                            <RBACPermissionGuard permissions="role:update">
                               <DropdownMenuItem onClick={() => handleEdit(role)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit Role
                               </DropdownMenuItem>
                             </RBACPermissionGuard>
-                            <RBACPermissionGuard permissions="roles:create">
+                            <RBACPermissionGuard permissions="role:create">
                               <DropdownMenuItem onClick={() => handleDuplicate(role)}>
                                 <Copy className="mr-2 h-4 w-4" />
                                 Duplicate
                               </DropdownMenuItem>
                             </RBACPermissionGuard>
                             <DropdownMenuSeparator />
-                            <RBACPermissionGuard permissions="roles:delete">
+                            <RBACPermissionGuard permissions="role:delete">
                               <DropdownMenuItem 
                                 onClick={() => handleDelete(role)}
                                 disabled={role.isSystem}
@@ -323,19 +321,9 @@ export default function RolesManagement() {
       </Card>
 
       {/* Create Role Dialog */}
-      <EnhancedRoleDialog
-        mode="create"
-        role={selectedRole}
-        open={createDialogOpen}
-        onOpenChange={(open) => {
-          setCreateDialogOpen(open);
-          if (!open) setSelectedRole(null);
-        }}
-      />
 
       {/* Edit Role Dialog */}
-      <EnhancedRoleDialog
-        mode="edit"
+      <EditRoleDialog
         role={selectedRole}
         open={editDialogOpen}
         onOpenChange={(open) => {

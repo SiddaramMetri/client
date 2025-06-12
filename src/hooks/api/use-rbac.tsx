@@ -107,6 +107,14 @@ export const usePermissions = (params?: any) => {
   });
 };
 
+export const useAllPermissions = () => {
+  return useQuery({
+    queryKey: ['permissions_all'],
+    queryFn: () => rbacService.permissions.getAllPermissionsWithoutPagination(),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const usePermission = (id: string) => {
   return useQuery({
     queryKey: ['permissions', id],

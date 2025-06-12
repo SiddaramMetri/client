@@ -1,27 +1,19 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { RBACPermissionGuard } from '@/components/resuable/permission-guard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  DialogTitle
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -29,33 +21,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import { RBACPermissionGuard } from '@/components/resuable/permission-guard';
-import { useRBACPermissions } from '@/hooks/use-permissions';
-import { 
-  Users, 
-  Shield, 
-  Crown, 
-  UserPlus, 
-  Settings, 
-  Search, 
-  Filter,
-  Edit,
-  Trash2,
-  Eye,
+import { useAllPermissions, useAssignRole, useRemoveRole, useRoles, useRoleStats, useUserRoles, useUserRoleStats } from '@/hooks/api/use-rbac';
+import { getAllUsers } from '@/services/user.service';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import {
   AlertTriangle,
   CheckCircle2,
-  Clock,
-  Calendar
+  Crown,
+  Edit,
+  Eye,
+  Search,
+  Settings,
+  Shield,
+  Trash2,
+  UserPlus,
+  Users
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { useRoles, usePermissions, useUserRoles, useAssignRole, useRemoveRole, useUserRoleStats, useRoleStats } from '@/hooks/api/use-rbac';
-import { useAuth } from '@/hooks/api/use-auth';
-import { useQuery } from '@tanstack/react-query';
-import { getAllUsers } from '@/services/user.service';
+import { useMemo, useState } from 'react';
 import EditUserRoleDialog from './components/edit-user-role-dialog';
 
 // All data now comes from the database via API calls
@@ -64,7 +58,6 @@ function UserRoleAssignmentPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false);
-  const [editRoleDialogOpen, setEditRoleDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [customPermissions, setCustomPermissions] = useState<string[]>([]);
   const [deniedPermissions, setDeniedPermissions] = useState<string[]>([]);
@@ -76,12 +69,11 @@ function UserRoleAssignmentPage() {
   const [selectedRoleForEdit, setSelectedRoleForEdit] = useState<any>(null);
 
   const { toast } = useToast();
-  const { isSuperAdmin } = useRBACPermissions();
   
   // API hooks
   const { data: rolesData, isLoading: rolesLoading, error: rolesError } = useRoles();
-  const { data: permissionsData, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
-  const { data: userRolesData, isLoading: userRolesLoading, error: userRolesError } = useUserRoles();
+  const { data: permissionsData, isLoading: permissionsLoading, error: permissionsError } = useAllPermissions();
+  const { data: userRolesData, error: userRolesError } = useUserRoles();
   const { data: userRoleStats } = useUserRoleStats();
   const { data: roleStats } = useRoleStats();
   const assignRoleMutation = useAssignRole();
@@ -98,17 +90,6 @@ function UserRoleAssignmentPage() {
   const permissions = permissionsData?.data || [];
   const userRoles = userRolesData?.data || [];
   const users = usersData?.data || [];
-
-  // Log API data status for debugging
-  React.useEffect(() => {
-    console.log('User Roles Page Data Status:', {
-      users: users.length,
-      roles: roles.length,
-      permissions: permissions.length,
-      userRoles: userRoles.length,
-      loading: { users: usersLoading, roles: rolesLoading, permissions: permissionsLoading, userRoles: userRolesLoading }
-    });
-  }, [users.length, roles.length, permissions.length, userRoles.length, usersLoading, rolesLoading, permissionsLoading, userRolesLoading]);
 
   // Filter users based on search
   const filteredUsers = useMemo(() => {
@@ -421,7 +402,7 @@ function UserRoleAssignmentPage() {
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={user?.avatar || undefined} alt={user.name} />
+                              <AvatarImage src={(user as any)?.avatar || undefined} alt={user.name} />
                               <AvatarFallback>
                                 {user.name.split(" ").map(n => n[0]).join("").toUpperCase()}
                               </AvatarFallback>
@@ -553,7 +534,7 @@ function UserRoleAssignmentPage() {
                 </div>
               ) : (
                 roles.map((role) => (
-                <Card key={role._id || role.id}>
+                <Card key={role._id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
@@ -570,7 +551,7 @@ function UserRoleAssignmentPage() {
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Users assigned:</span>
-                        <span className="font-medium">{role.userCount || 0}</span>
+                        <span className="font-medium">{(role as any).userCount || 0}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Permissions:</span>
@@ -588,7 +569,10 @@ function UserRoleAssignmentPage() {
                         <div className="flex flex-wrap gap-1">
                           {(role.permissions || []).slice(0, 4).map((permission, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
-                              {typeof permission === 'string' ? permission : permission.code || permission.name}
+                              {typeof permission === 'string' 
+                                ? permission 
+                                : (permission as {code?: string; name?: string})?.code || 
+                                  (permission as {code?: string; name?: string})?.name}
                             </Badge>
                           ))}
                           {(role.permissions || []).length > 4 && (
@@ -638,7 +622,7 @@ function UserRoleAssignmentPage() {
                       <h3 className="text-lg font-semibold mb-3 capitalize">{module} Module</h3>
                       <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
                         {permissions.map((permission) => (
-                          <div key={permission.id} className="flex items-center space-x-2 p-2 border rounded-lg">
+                          <div key={permission._id} className="flex items-center space-x-2 p-2 border rounded-lg">
                             <Badge variant="outline" className="text-xs">
                               {permission.action}
                             </Badge>

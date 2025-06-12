@@ -14,14 +14,13 @@ import {
 } from "@tabler/icons-react";
 
 import { LayoutDashboard, Users, Shield, Crown } from "lucide-react";
-import { Permission } from "@/hooks/usePermissions";
 
 export interface NavigationItem {
     title: string;
     url: string;
     icon: any;
     items?: NavigationItem[];
-    permissions?: Permission[];
+    permissions?: string[];
     isActive?: boolean;
     name?: string;
 }
@@ -113,6 +112,30 @@ export const data: NavigationConfig = {
             url: "/dashboard/permissions",
             icon: Shield,
             items: [],
+            permissions: ['users.view']
+        },
+        {
+            title: "Notifications",
+            url: "/dashboard/notifications",
+            icon: IconBell,
+            permissions: ['users.view']
+        },
+        {
+            title: "Messages",
+            url: "/dashboard/messages",
+            icon: IconMessage,
+            permissions: ['users.view']
+        },
+        {
+            title: "Settings",
+            url: "/dashboard/account",
+            icon: IconSettings,
+            permissions: ['users.view']
+        },
+        {
+            title: "Help Center",
+            url: "/dashboard/help",
+            icon: IconHelp,
             permissions: ['users.view']
         },
         {

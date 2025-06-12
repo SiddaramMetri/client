@@ -1,29 +1,15 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AdminOnlyGuard, RBACPermissionGuard } from '@/components/resuable/permission-guard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { RBACPermissionGuard, AdminOnlyGuard } from '@/components/resuable/permission-guard';
-import { useRBACPermissions } from '@/hooks/use-permissions';
-import { Shield, Users, Key, Settings, Search, Plus, Edit, Trash2, Eye, AlertTriangle } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { 
-  useRoles, 
-  usePermissions, 
-  useUserRoles, 
-  useRoleStats, 
-  useUserRoleStats,
-  useUpdateRole,
-  useDeleteRole,
-  useCreatePermission,
-  useUpdatePermission,
-  useDeletePermission
-} from '@/hooks/api/use-rbac';
-import CreateRoleDialog from './components/create-role-dialog';
-import EditRoleDialog from './components/edit-role-dialog';
-import CreatePermissionDialog from './components/create-permission-dialog';
-import RolesManagement from './components/roles-management';
 import {
   Table,
   TableBody,
@@ -32,14 +18,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  useCreatePermission,
+  useDeletePermission,
+  useDeleteRole,
+  usePermissions,
+  useRoles,
+  useRoleStats,
+  useUpdatePermission,
+  useUpdateRole,
+  useUserRoles,
+  useUserRoleStats
+} from '@/hooks/api/use-rbac';
+import { useRBACPermissions } from '@/hooks/use-permissions';
+import { AlertTriangle, Edit, Eye, Key, Plus, Search, Shield, Trash2, Users } from 'lucide-react';
+import { useState } from 'react';
+import CreatePermissionDialog from './components/create-permission-dialog';
+import CreateRoleDialog from './components/create-role-dialog';
+import EditRoleDialog from './components/edit-role-dialog';
+import RolesManagement from './components/roles-management';
 
 // Replace mock data with real API calls
 function PermissionsManagementPage() {
@@ -48,7 +46,6 @@ function PermissionsManagementPage() {
   const [editRoleOpen, setEditRoleOpen] = useState(false);
   const [deleteRoleOpen, setDeleteRoleOpen] = useState(false);
   const [selectedPermission, setSelectedPermission] = useState<any>(null);
-  const [editPermissionOpen, setEditPermissionOpen] = useState(false);
   const [deletePermissionOpen, setDeletePermissionOpen] = useState(false);
 
   const { 
@@ -78,16 +75,6 @@ function PermissionsManagementPage() {
   const roles = rolesData?.data || [];
   const permissions = permissionsData?.data || [];
   const userRoles = userRolesData?.data || [];
-
-  // Log API data status for debugging
-  React.useEffect(() => {
-    console.log('Permissions Page Data Status:', {
-      roles: roles.length,
-      permissions: permissions.length,
-      userRoles: userRoles.length,
-      loading: { roles: rolesLoading, permissions: permissionsLoading, userRoles: userRolesLoading }
-    });
-  }, [roles.length, permissions.length, userRoles.length, rolesLoading, permissionsLoading, userRolesLoading]);
 
   // Filter data based on search
   const filteredRoles = roles.filter((role: any) => 
@@ -129,7 +116,6 @@ function PermissionsManagementPage() {
 
   const handleEditPermission = (permission: any) => {
     setSelectedPermission(permission);
-    setEditPermissionOpen(true);
   };
 
   const handleDeletePermission = (permission: any) => {
@@ -298,7 +284,7 @@ function PermissionsManagementPage() {
                       Create and manage user roles with specific permission sets
                     </CardDescription>
                   </div>
-                  <RBACPermissionGuard permissions="roles:create">
+                  <RBACPermissionGuard permissions="role:create">
                     <CreateRoleDialog>
                       <Button>
                         <Plus className="w-4 h-4 mr-2" />
@@ -365,12 +351,12 @@ function PermissionsManagementPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
-                              <RBACPermissionGuard permissions="roles:read">
+                              <RBACPermissionGuard permissions="role:read">
                                 <Button variant="ghost" size="sm">
                                   <Eye className="w-4 h-4" />
                                 </Button>
                               </RBACPermissionGuard>
-                              <RBACPermissionGuard permissions="roles:update">
+                              <RBACPermissionGuard permissions="role:update">
                                 <Button 
                                   variant="ghost" 
                                   size="sm"
@@ -379,7 +365,7 @@ function PermissionsManagementPage() {
                                   <Edit className="w-4 h-4" />
                                 </Button>
                               </RBACPermissionGuard>
-                              <RBACPermissionGuard permissions="roles:delete">
+                              <RBACPermissionGuard permissions="role:delete">
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
@@ -416,7 +402,7 @@ function PermissionsManagementPage() {
                       Define granular permissions for system modules and actions
                     </CardDescription>
                   </div>
-                  <RBACPermissionGuard permissions="permissions:create">
+                  <RBACPermissionGuard permissions="permission:create">
                     <CreatePermissionDialog>
                       <Button>
                         <Plus className="w-4 h-4 mr-2" />
@@ -453,7 +439,7 @@ function PermissionsManagementPage() {
                       </TableRow>
                     ) : (
                       filteredPermissions.map((permission) => (
-                        <TableRow key={permission._id || permission.id}>
+                        <TableRow key={permission._id}>
                           <TableCell className="font-medium">{permission.name}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="font-mono text-xs">
@@ -473,12 +459,12 @@ function PermissionsManagementPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
-                              <RBACPermissionGuard permissions="permissions:read">
+                              <RBACPermissionGuard permissions="permission:read">
                                 <Button variant="ghost" size="sm">
                                   <Eye className="w-4 h-4" />
                                 </Button>
                               </RBACPermissionGuard>
-                              <RBACPermissionGuard permissions="permissions:update">
+                              <RBACPermissionGuard permissions="permission:update">
                                 <Button 
                                   variant="ghost" 
                                   size="sm"
@@ -487,7 +473,7 @@ function PermissionsManagementPage() {
                                   <Edit className="w-4 h-4" />
                                 </Button>
                               </RBACPermissionGuard>
-                              <RBACPermissionGuard permissions="permissions:delete">
+                              <RBACPermissionGuard permissions="permission:delete">
                                 <Button 
                                   variant="ghost" 
                                   size="sm"
@@ -519,12 +505,12 @@ function PermissionsManagementPage() {
                       Manage which roles are assigned to which users
                     </CardDescription>
                   </div>
-                  <RBACPermissionGuard permissions="user_roles:create">
+                  {/* <RBACPermissionGuard permissions="user_role:create"> */}
                     <Button onClick={() => window.location.href = '/dashboard/user-roles'}>
                       <Plus className="w-4 h-4 mr-2" />
                       Assign Role
                     </Button>
-                  </RBACPermissionGuard>
+                  {/* </RBACPermissionGuard> */}
                 </div>
               </CardHeader>
               <CardContent>
@@ -555,29 +541,29 @@ function PermissionsManagementPage() {
                       filteredUserRoles.map((userRole) => (
                         <TableRow key={userRole._id}>
                           <TableCell className="font-medium">
-                            {userRole.userId?.name || 'Unknown User'}
+                            {(userRole.userId as any)?.name || 'Unknown User'}
                           </TableCell>
                           <TableCell>
-                            {userRole.userId?.email || 'No email'}
+                            {(userRole.userId as any)?.email || 'No email'}
                           </TableCell>
                           <TableCell>
-                            <Badge>{userRole.roleId?.name || 'Unknown Role'}</Badge>
+                            <Badge>{(userRole.roleId as any)?.name || 'Unknown Role'}</Badge>
                           </TableCell>
                           <TableCell>
                             {userRole.assignedAt ? new Date(userRole.assignedAt).toLocaleDateString() : 'N/A'}
                           </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <RBACPermissionGuard permissions="user_roles:update">
+                            {/* <RBACPermissionGuard permissions="user_role:update"> */}
                               <Button variant="ghost" size="sm">
                                 <Edit className="w-4 h-4" />
                               </Button>
-                            </RBACPermissionGuard>
-                            <RBACPermissionGuard permissions="user_roles:delete">
+                            {/* </RBACPermissionGuard> */}
+                            {/* <RBACPermissionGuard permissions="user_role:delete"> */}
                               <Button variant="ghost" size="sm">
                                 <Trash2 className="w-4 h-4" />
                               </Button>
-                            </RBACPermissionGuard>
+                            {/* </RBACPermissionGuard> */}
                           </div>
                         </TableCell>
                         </TableRow>
