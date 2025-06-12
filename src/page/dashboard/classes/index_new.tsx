@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { DataTable } from "@/components/ui/table/data-table";
 import { useToast } from "@/components/ui/use-toast";
+import { useEffect, useState } from "react";
 import { ClassesDialog } from "./components/classes-dialog";
+import { columns } from "./data/columns";
 import { mockClasses } from "./data/mock";
 import { ClassData } from "./data/schema.ts";
-import { columns } from "./data/columns";
-import { DataTable } from "@/components/ui/table/data-table";
 
 // Status options for the data table filter
 const classStatuses = [
@@ -49,7 +49,7 @@ export default function ClassesPage() {
   const handleUpdateClass = (classData: ClassData) => {
     // In a real app, you'd make an API call here
     const updatedClasses = classes.map(c => 
-      c.id === classData.id ? {...classData, updatedAt: new Date().toISOString()} : c
+      c._id === classData._id ? {...classData, updatedAt: new Date().toISOString()} : c
     );
     setClasses(updatedClasses);
     toast({
@@ -60,8 +60,8 @@ export default function ClassesPage() {
   
   const handleDeleteClass = (id: string) => {
     // In a real app, you'd make an API call here
-    const classToDelete = classes.find(c => c.id === id);
-    const filteredClasses = classes.filter(c => c.id !== id);
+    const classToDelete = classes.find(c => c._id === id);
+    const filteredClasses = classes.filter(c => c._id !== id);
     setClasses(filteredClasses);
     toast({
       title: "Class Deleted",

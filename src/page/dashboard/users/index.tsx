@@ -23,6 +23,7 @@ import {
   UserPlus,
   Users,
   UserX,
+  Shield,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AddUserDialog from "./components/add-user-dialog";
@@ -30,8 +31,11 @@ import EditUserDialog from "./components/edit-user-dialog";
 import { createColumns } from "./data/columns";
 import { User } from "./data/schema";
 import CompactStatsCards from "./components/compact-stats-cards";
+import { RBACPermissionGuard } from "@/components/resuable/permission-guard";
+import { useRBACPermissions } from "@/hooks/use-permissions";
+import { withRBACPermission } from "@/hoc/with-permission";
 
-export default function UsersPage() {
+function UsersPage() {
   // State for filtering and pagination
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -42,6 +46,7 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const { onOpenAdd, onOpenEdit } = useUserDialog();
   const { confirm } = useConfirmDialog();
+  const { hasPermission } = useRBACPermissions();
 
   // Fetch users with pagination
   const {
@@ -110,17 +115,42 @@ export default function UsersPage() {
     },
   });
 
-  // Action handlers
+  // Action handlers with permission checks
   const handleView = (user: User) => {
+    if (!hasPermission('users:read')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to view user details.",
+      });
+      return;
+    }
     // Could open a view modal here
     console.log("View user:", user);
   };
 
   const handleEdit = (user: User) => {
+    if (!hasPermission('users:update')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to edit users.",
+      });
+      return;
+    }
     onOpenEdit(user);
   };
 
   const handleDelete = async (user: User) => {
+    if (!hasPermission('users:delete')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to delete users.",
+      });
+      return;
+    }
+
     const confirmed = await confirm({
       title: "Delete User",
       description: `Are you sure you want to delete ${user.name}? This action cannot be undone.`,
@@ -134,6 +164,15 @@ export default function UsersPage() {
   };
 
   const handleToggleStatus = async (user: User) => {
+    if (!hasPermission('users:manage')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to manage user status.",
+      });
+      return;
+    }
+
     const action = user.isActive ? "deactivate" : "activate";
     const confirmed = await confirm({
       title: `${action.charAt(0).toUpperCase() + action.slice(1)} User`,
@@ -187,31 +226,38 @@ export default function UsersPage() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button
-              size="sm"
-              onClick={onOpenAdd}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600"
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              disabled={isLoading}
-            >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </Button>
+            <RBACPermissionGuard permissions="users:create">
+              <Button
+                size="sm"
+                onClick={onOpenAdd}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
+            </RBACPermissionGuard>
+            
+            <RBACPermissionGuard permissions="users:read">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+                disabled={isLoading}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
+            </RBACPermissionGuard>
           </div>
         </div>
 
-        <div>
-          <CompactStatsCards statsData={stats} />
-        </div>
+        <RBACPermissionGuard permissions="users:read">
+          <div>
+            <CompactStatsCards statsData={stats} />
+          </div>
+        </RBACPermissionGuard>
 
         <div>
           {isLoading ? (
@@ -263,10 +309,33 @@ export default function UsersPage() {
             />
           )}
         </div>
-        {/* Modals */}
-        <AddUserDialog />
-        <EditUserDialog />
+        {/* Modals - Protected by permissions */}
+        <RBACPermissionGuard permissions="users:create">
+          <AddUserDialog />
+        </RBACPermissionGuard>
+        
+        <RBACPermissionGuard permissions="users:update">
+          <EditUserDialog />
+        </RBACPermissionGuard>
       </div>
     </>
   );
 }
+
+// Export page with RBAC protection
+export default withRBACPermission(UsersPage, {
+  permissions: 'users:read',
+  redirectTo: '/dashboard',
+  fallbackComponent: () => (
+    <div className="flex items-center justify-center h-64">
+      <Card className="p-6">
+        <CardContent className="text-center">
+          <Shield className="mx-auto h-12 w-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
+          <p className="text-gray-600">You don't have permission to access user management.</p>
+          <p className="text-sm text-gray-500 mt-2">Required permission: users:read</p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+});

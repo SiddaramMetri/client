@@ -15,6 +15,8 @@ import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-h
 import { MoreHorizontal, Edit, Trash, Eye, UserCheck, UserX } from "lucide-react"
 import { User } from "./schema"
 import { formatDistanceToNow } from "date-fns"
+import { RBACPermissionGuard } from "@/components/resuable/permission-guard"
+import { useRBACPermissions } from "@/hooks/use-permissions"
 
 interface ActionsProps {
   user: User;
@@ -25,6 +27,22 @@ interface ActionsProps {
 }
 
 const ActionsCell = ({ user, onView, onEdit, onDelete, onToggleStatus }: ActionsProps) => {
+  const { hasPermission, canAccessOwnResource } = useRBACPermissions();
+  
+  // Check if user can access their own resource
+  const canAccessOwn = canAccessOwnResource(user._id);
+  
+  // Determine what actions are available
+  const canView = hasPermission('users:read') || canAccessOwn;
+  const canEdit = hasPermission('users:update') || canAccessOwn;
+  const canDelete = hasPermission('users:delete') && !canAccessOwn; // Can't delete yourself
+  const canToggleStatus = hasPermission('users:manage') && !canAccessOwn; // Can't toggle own status
+  
+  // If no actions are available, don't show the menu
+  if (!canView && !canEdit && !canDelete && !canToggleStatus) {
+    return null;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,39 +53,60 @@ const ActionsCell = ({ user, onView, onEdit, onDelete, onToggleStatus }: Actions
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        
+        {/* Copy ID - always available if dropdown is shown */}
         <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user._id)}>
           Copy user ID
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => onView(user)}>
-          <Eye className="mr-2 h-4 w-4" />
-          View details
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(user)}>
-          <Edit className="mr-2 h-4 w-4" />
-          Edit user
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onToggleStatus(user)}>
-          {user.isActive ? (
-            <>
-              <UserX className="mr-2 h-4 w-4" />
-              Deactivate
-            </>
-          ) : (
-            <>
-              <UserCheck className="mr-2 h-4 w-4" />
-              Activate
-            </>
-          )}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={() => onDelete(user)}
-          className="text-destructive focus:text-destructive"
-        >
-          <Trash className="mr-2 h-4 w-4" />
-          Delete
-        </DropdownMenuItem>
+        
+        {(canView || canEdit || canToggleStatus || canDelete) && <DropdownMenuSeparator />}
+        
+        {/* View Details */}
+        {canView && (
+          <DropdownMenuItem onClick={() => onView(user)}>
+            <Eye className="mr-2 h-4 w-4" />
+            View details
+          </DropdownMenuItem>
+        )}
+        
+        {/* Edit User */}
+        {canEdit && (
+          <DropdownMenuItem onClick={() => onEdit(user)}>
+            <Edit className="mr-2 h-4 w-4" />
+            {canAccessOwn ? 'Edit profile' : 'Edit user'}
+          </DropdownMenuItem>
+        )}
+        
+        {/* Toggle Status */}
+        {canToggleStatus && (
+          <DropdownMenuItem onClick={() => onToggleStatus(user)}>
+            {user.isActive ? (
+              <>
+                <UserX className="mr-2 h-4 w-4" />
+                Deactivate
+              </>
+            ) : (
+              <>
+                <UserCheck className="mr-2 h-4 w-4" />
+                Activate
+              </>
+            )}
+          </DropdownMenuItem>
+        )}
+        
+        {/* Delete User */}
+        {canDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => onDelete(user)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash className="mr-2 h-4 w-4" />
+              Delete user
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

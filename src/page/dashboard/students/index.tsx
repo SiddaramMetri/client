@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { DataTable } from "@/components/ui/table/data-table";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, UserPlus, Loader2 } from "lucide-react";
+import { Download, Upload, UserPlus, Loader2, Shield } from "lucide-react";
 import { columns } from "./data/columns";
 import { priorities } from "./data/priorities";
 import { statuses } from "./data/statuses";
@@ -18,8 +18,11 @@ import StudentRegistrationDialog from "./components/student-registration-dialog"
 import AdvancedFilters, { AdvancedFilterOptions } from "./components/advanced-filters";
 import { downloadStudentTemplateService } from "@/services/student.service";
 import { useStudents, useStudentsStats, useToggleStudentStatus } from "@/hooks/api/use-students";
+import { RBACPermissionGuard } from "@/components/resuable/permission-guard";
+import { useRBACPermissions } from "@/hooks/use-permissions";
+import { withRBACPermission } from "@/hoc/with-permission";
 
-export default function StudentsPage() {
+function StudentsPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -42,6 +45,7 @@ export default function StudentsPage() {
 
   const { toast } = useToast();
   const toggleStatusMutation = useToggleStudentStatus();
+  const { hasPermission } = useRBACPermissions();
 
   // Reset page when search term changes
   useEffect(() => {
@@ -120,25 +124,57 @@ export default function StudentsPage() {
     setCurrentPage(1); // Reset to first page when changing page size
   }, []);
 
-  // Action handlers
+  // Action handlers with permission checks
   const handleOpenAddDialog = useCallback(() => {
+    if (!hasPermission('students:create')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to create students.",
+      });
+      return;
+    }
     setAddDialogOpen(true);
-  }, []);
+  }, [hasPermission, toast]);
 
   const handleOpenEditDialog = useCallback((student: Task) => {
+    if (!hasPermission('students:update')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to edit students.",
+      });
+      return;
+    }
     setSelectedStudent(student);
     setEditDialogOpen(true);
-  }, []);
+  }, [hasPermission, toast]);
 
   const handleOpenViewDialog = useCallback((student: Task) => {
+    if (!hasPermission('students:read')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to view student details.",
+      });
+      return;
+    }
     setSelectedStudent(student);
     setViewDialogOpen(true);
-  }, []);
+  }, [hasPermission, toast]);
 
   const handleOpenDeleteDialog = useCallback((student: Task) => {
+    if (!hasPermission('students:delete')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to delete students.",
+      });
+      return;
+    }
     setSelectedStudent(student);
     setDeleteDialogOpen(true);
-  }, []);
+  }, [hasPermission, toast]);
 
   // New action handlers
   const handleToggleStatus = useCallback((student: Task) => {
@@ -283,21 +319,29 @@ Parent Mobile: ${student.parentMobile}
             </p>
           </div>
           <div className="flex items-center space-x-2 flex-wrap gap-2">
-            <Button
-              onClick={handleOpenAddDialog}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600"
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add Student
-            </Button>
-            <Button variant="outline" onClick={handleUploadClick}>
-              <Upload className="mr-2 h-4 w-4" />
-              Bulk Upload
-            </Button>
-            <Button variant="outline" onClick={handleDownloadTemplate}>
-              <Download className="mr-2 h-4 w-4" />
-              Template
-            </Button>
+            <RBACPermissionGuard permissions="students:create">
+              <Button
+                onClick={handleOpenAddDialog}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Student
+              </Button>
+            </RBACPermissionGuard>
+            
+            <RBACPermissionGuard permissions="students:create">
+              <Button variant="outline" onClick={handleUploadClick}>
+                <Upload className="mr-2 h-4 w-4" />
+                Bulk Upload
+              </Button>
+            </RBACPermissionGuard>
+            
+            <RBACPermissionGuard permissions="students:read">
+              <Button variant="outline" onClick={handleDownloadTemplate}>
+                <Download className="mr-2 h-4 w-4" />
+                Template
+              </Button>
+            </RBACPermissionGuard>
           </div>
         </div>
 
@@ -425,44 +469,72 @@ Parent Mobile: ${student.parentMobile}
             </TabsContent>
           </Tabs>
         </div>
-        {/* Dialog Components */}
-        <StudentRegistrationDialog
-          open={addDialogOpen}
-          onOpenChange={setAddDialogOpen}
-          onSuccess={handleOperationSuccess}
-        />
+        {/* Dialog Components - Protected by permissions */}
+        <RBACPermissionGuard permissions="students:create">
+          <StudentRegistrationDialog
+            open={addDialogOpen}
+            onOpenChange={setAddDialogOpen}
+            onSuccess={handleOperationSuccess}
+          />
+        </RBACPermissionGuard>
 
-        <EditStudentDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          student={selectedStudent}
-          onSuccess={handleOperationSuccess}
-        />
+        <RBACPermissionGuard permissions="students:update">
+          <EditStudentDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            student={selectedStudent}
+            onSuccess={handleOperationSuccess}
+          />
+        </RBACPermissionGuard>
 
-        <ViewStudentDialog
-          open={viewDialogOpen}
-          onOpenChange={setViewDialogOpen}
-          studentId={selectedStudent?.id || null}
-        />
+        <RBACPermissionGuard permissions="students:read">
+          <ViewStudentDialog
+            open={viewDialogOpen}
+            onOpenChange={setViewDialogOpen}
+            studentId={selectedStudent?.id || null}
+          />
+        </RBACPermissionGuard>
 
-        <DeleteStudentDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          studentId={selectedStudent?.id || null}
-          studentName={
-            selectedStudent
-              ? `${selectedStudent.firstName} ${selectedStudent.lastName}`
-              : null
-          }
-          onSuccess={handleOperationSuccess}
-        />
+        <RBACPermissionGuard permissions="students:delete">
+          <DeleteStudentDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            studentId={selectedStudent?.id || null}
+            studentName={
+              selectedStudent
+                ? `${selectedStudent.firstName} ${selectedStudent.lastName}`
+                : null
+            }
+            onSuccess={handleOperationSuccess}
+          />
+        </RBACPermissionGuard>
 
-        <UploadStudentsDialog
-          open={uploadDialogOpen}
-          onOpenChange={setUploadDialogOpen}
-          onSuccess={handleOperationSuccess}
-        />
+        <RBACPermissionGuard permissions="students:create">
+          <UploadStudentsDialog
+            open={uploadDialogOpen}
+            onOpenChange={setUploadDialogOpen}
+            onSuccess={handleOperationSuccess}
+          />
+        </RBACPermissionGuard>
       </div>
     </>
   );
 }
+
+// Export page with RBAC protection
+export default withRBACPermission(StudentsPage, {
+  permissions: 'students:read',
+  redirectTo: '/dashboard',
+  fallbackComponent: () => (
+    <div className="flex items-center justify-center h-64">
+      <Card className="p-6">
+        <CardContent className="text-center">
+          <Shield className="mx-auto h-12 w-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
+          <p className="text-gray-600">You don't have permission to access student management.</p>
+          <p className="text-sm text-gray-500 mt-2">Required permission: students:read</p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+});

@@ -33,6 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useRBACPermissions } from "@/hooks/use-permissions"
 
 // Define our action handlers interface for type safety
 interface ActionsProps {
@@ -310,121 +311,164 @@ export const columns = ({
     cell: ({ row }) => {
       const task = row.original
       const isActive = task.status === "active"
+      
+      // Create a component to access hooks
+      const ActionsCell = () => {
+        const { hasPermission } = useRBACPermissions()
+        
+        const canView = hasPermission('students:read')
+        const canEdit = hasPermission('students:update')
+        const canDelete = hasPermission('students:delete')
+        const canToggleStatus = hasPermission('students:manage')
+        const canDownload = hasPermission('students:read')
+        const canCommunicate = hasPermission('students:communicate') || hasPermission('students:manage')
+        const canViewReports = hasPermission('reports:read') || hasPermission('students:read')
+        
+        // If no permissions available, don't show actions
+        if (!canView && !canEdit && !canDelete && !canToggleStatus && !canDownload && !canCommunicate && !canViewReports) {
+          return null
+        }
 
-      return (
-        <div className="flex items-center justify-end gap-1 min-w-[140px]">
-          <TooltipProvider>
-            {/* Quick Actions */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onView && onView(task)}
-                >
-                  <Eye className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View Details</TooltipContent>
-            </Tooltip>
-            
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onEdit && onEdit(task)}
-                >
-                  <Pencil className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Edit Student</TooltipContent>
-            </Tooltip>
-            
-            {/* More Actions Dropdown */}
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
+        return (
+          <div className="flex items-center justify-end gap-1 min-w-[140px]">
+            <TooltipProvider>
+              {/* Quick Actions */}
+              {canView && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="icon"
                       className="h-8 w-8"
+                      onClick={() => onView && onView(task)}
                     >
-                      <MoreHorizontal className="h-3 w-3" />
+                      <Eye className="h-3 w-3" />
                     </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>More Actions</TooltipContent>
-              </Tooltip>
+                  </TooltipTrigger>
+                  <TooltipContent>View Details</TooltipContent>
+                </Tooltip>
+              )}
               
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Student Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  onClick={() => onToggleStatus && onToggleStatus(task)}
-                  className={isActive ? "text-orange-600" : "text-green-600"}
-                >
-                  {isActive ? (
-                    <>
-                      <UserX className="mr-2 h-4 w-4" />
-                      Deactivate Student
-                    </>
-                  ) : (
-                    <>
-                      <UserCheck className="mr-2 h-4 w-4" />
-                      Activate Student
-                    </>
-                  )}
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={() => onDownloadProfile && onDownloadProfile(task)}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Profile
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={() => onCopyDetails && onCopyDetails(task)}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy Details
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  onClick={() => onSendEmail && onSendEmail(task)}
-                  disabled={!task.studentEmail && !task.rawData?.parentInfo?.email}
-                >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Send Email
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={() => onSendMessage && onSendMessage(task)}>
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Send Message
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={() => onViewReports && onViewReports(task)}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  View Reports
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  onClick={() => onDelete && onDelete(task)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash className="mr-2 h-4 w-4" />
-                  Delete Student
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </TooltipProvider>
-        </div>
-      )
+              {canEdit && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => onEdit && onEdit(task)}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit Student</TooltipContent>
+                </Tooltip>
+              )}
+              
+              {/* More Actions Dropdown - only show if there are additional actions */}
+              {(canToggleStatus || canDownload || canCommunicate || canViewReports || canDelete) && (
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-8 w-8"
+                        >
+                          <MoreHorizontal className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>More Actions</TooltipContent>
+                  </Tooltip>
+                  
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Student Actions</DropdownMenuLabel>
+                    
+                    {(canToggleStatus || canDownload) && <DropdownMenuSeparator />}
+                    
+                    {canToggleStatus && (
+                      <DropdownMenuItem 
+                        onClick={() => onToggleStatus && onToggleStatus(task)}
+                        className={isActive ? "text-orange-600" : "text-green-600"}
+                      >
+                        {isActive ? (
+                          <>
+                            <UserX className="mr-2 h-4 w-4" />
+                            Deactivate Student
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="mr-2 h-4 w-4" />
+                            Activate Student
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {canDownload && (
+                      <>
+                        <DropdownMenuItem onClick={() => onDownloadProfile && onDownloadProfile(task)}>
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Profile
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem onClick={() => onCopyDetails && onCopyDetails(task)}>
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy Details
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
+                    {canCommunicate && (
+                      <>
+                        <DropdownMenuSeparator />
+                        
+                        <DropdownMenuItem 
+                          onClick={() => onSendEmail && onSendEmail(task)}
+                          disabled={!task.studentEmail && !task.rawData?.parentInfo?.email}
+                        >
+                          <Mail className="mr-2 h-4 w-4" />
+                          Send Email
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem onClick={() => onSendMessage && onSendMessage(task)}>
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          Send Message
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
+                    {canViewReports && (
+                      <DropdownMenuItem onClick={() => onViewReports && onViewReports(task)}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        View Reports
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {canDelete && (
+                      <>
+                        <DropdownMenuSeparator />
+                        
+                        <DropdownMenuItem 
+                          onClick={() => onDelete && onDelete(task)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash className="mr-2 h-4 w-4" />
+                          Delete Student
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </TooltipProvider>
+          </div>
+        )
+      }
+      
+      return <ActionsCell />
     },
     enableSorting: false,
     enableHiding: false,
