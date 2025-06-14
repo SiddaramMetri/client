@@ -13,7 +13,7 @@ import {
     IconSettings
 } from "@tabler/icons-react";
 
-import { LayoutDashboard, Users, Shield, Crown } from "lucide-react";
+import { LayoutDashboard, Users, Shield, Crown, Zap } from "lucide-react";
 
 export interface NavigationItem {
     title: string;
@@ -111,6 +111,13 @@ export const data: NavigationConfig = {
             title: "Permissions",
             url: "/dashboard/permissions",
             icon: Shield,
+            items: [],
+            permissions: ['users.view']
+        },
+        {
+            title: "Redis Test",
+            url: "/dashboard/redis-test",
+            icon: Zap,
             items: [],
             permissions: ['users.view']
         },

@@ -56,6 +56,11 @@ export function NavMain() {
       icon: Users,
     },
     {
+      title: "Redis Test",
+      url: `/dashboard/redis-test`,
+      icon: Users,
+    },
+    {
       title: "Attendance",
       url: `/dashboard/attendance`,
       icon: Users,
