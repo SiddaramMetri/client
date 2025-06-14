@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useGetClassAttendance, useMarkAttendance, useMarkBulkAttendance, type ClassAttendance } from "@/hooks/api/use-attendance";
 import { useStudents } from "@/hooks/api/use-students";
-import { toast } from "@/hooks/use-toast";
+import { toastSuccess, toastError } from "@/utils/toast";
 
 interface AttendanceMarkingInterfaceProps {
   classId: string;
@@ -85,11 +85,7 @@ const AttendanceMarkingInterface: React.FC<AttendanceMarkingInterfaceProps> = ({
 
   const handleBulkApply = () => {
     if (!bulkStatus) {
-      toast({
-        title: "Error",
-        description: "Please select a status for bulk apply",
-        variant: "destructive",
-      });
+      toastError("Please select a status for bulk apply");
       return;
     }
 
@@ -97,44 +93,43 @@ const AttendanceMarkingInterface: React.FC<AttendanceMarkingInterfaceProps> = ({
     const newAttendanceData: Record<string, { status: string; remarks: string }> = {};
     
     students.forEach(student => {
-      newAttendanceData[student._id] = {
-        status: bulkStatus,
-        remarks: bulkRemarks
-      };
+      const studentId = student._id || student.id;
+      if (studentId) {
+        newAttendanceData[studentId] = {
+          status: bulkStatus,
+          remarks: bulkRemarks
+        };
+      }
     });
     
     setAttendanceData(newAttendanceData);
     setBulkStatus("");
     setBulkRemarks("");
     
-    toast({
-      title: "Success",
-      description: "Bulk status applied to all students",
-    });
+    toastSuccess("Bulk status applied to all students");
   };
 
   const handleSaveAttendance = async () => {
     if (!classId) {
-      toast({
-        title: "Error",
-        description: "Please select a class first",
-        variant: "destructive",
-      });
+      toastError("Please select a class first");
       return;
     }
 
-    const attendanceList = Object.entries(attendanceData).map(([studentId, data]) => ({
-      studentId,
-      status: data.status,
-      remarks: data.remarks || undefined
-    }));
+    const students = studentsData?.students || [];
+    const attendanceList = students
+      .filter(student => student.id)
+      .map(student => {
+        const studentId = student.id;
+        const data = attendanceData[studentId] || { status: "present", remarks: "" };
+        return {
+          studentId,
+          status: data.status,
+          remarks: data.remarks || undefined
+        };
+      });
 
     if (attendanceList.length === 0) {
-      toast({
-        title: "Error",
-        description: "No attendance data to save",
-        variant: "destructive",
-      });
+      toastError("No attendance data to save");
       return;
     }
 
@@ -279,11 +274,12 @@ const AttendanceMarkingInterface: React.FC<AttendanceMarkingInterfaceProps> = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {students.map((student, index) => {
-            const studentAttendance = attendanceData[student._id];
+            const studentId = student.id;
+            const studentAttendance = attendanceData[studentId];
             const statusOption = getStatusOption(studentAttendance?.status || "present");
 
             return (
-              <div key={student._id}>
+              <div key={studentId}>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
@@ -308,7 +304,7 @@ const AttendanceMarkingInterface: React.FC<AttendanceMarkingInterfaceProps> = ({
                   <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <Select
                       value={studentAttendance?.status || "present"}
-                      onValueChange={(value) => handleStatusChange(student._id, value)}
+                      onValueChange={(value) => handleStatusChange(studentId, value)}
                     >
                       <SelectTrigger className="w-full sm:w-[140px]">
                         <SelectValue />
@@ -328,7 +324,7 @@ const AttendanceMarkingInterface: React.FC<AttendanceMarkingInterfaceProps> = ({
                     <Textarea
                       placeholder="Remarks (optional)"
                       value={studentAttendance?.remarks || ""}
-                      onChange={(e) => handleRemarksChange(student._id, e.target.value)}
+                      onChange={(e) => handleRemarksChange(studentId, e.target.value)}
                       rows={1}
                       className="w-full sm:w-[200px]"
                     />

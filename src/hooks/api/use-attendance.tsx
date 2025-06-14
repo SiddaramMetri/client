@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/hooks/use-toast";
+import { toastSuccess, toastError } from "@/utils/toast";
 import API from "@/lib/axios-client";
 
 // Types
@@ -166,17 +166,10 @@ export const useCreateAttendanceConfig = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendanceConfig"] });
-      toast({
-        title: "Success",
-        description: "Attendance configuration updated successfully",
-      });
+      toastSuccess("Attendance configuration updated successfully");
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update configuration",
-        variant: "destructive",
-      });
+      toastError(error.response?.data?.message || "Failed to update configuration");
     },
   });
 };
@@ -200,17 +193,10 @@ export const useMarkAttendance = () => {
       queryClient.invalidateQueries({ queryKey: ["classAttendance"] });
       queryClient.invalidateQueries({ queryKey: ["monthlyStats"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
-      toast({
-        title: "Success",
-        description: "Attendance marked successfully",
-      });
+      toastSuccess("Attendance marked successfully");
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to mark attendance",
-        variant: "destructive",
-      });
+      toastError(error.response?.data?.message || "Failed to mark attendance");
     },
   });
 };
@@ -232,21 +218,26 @@ export const useMarkBulkAttendance = () => {
       const response = await API.post("/attendance/mark-bulk", bulkData);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["classAttendance"] });
       queryClient.invalidateQueries({ queryKey: ["monthlyStats"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
-      toast({
-        title: "Success",
-        description: "Bulk attendance marked successfully",
-      });
+      
+      // Use the detailed message from the backend
+      const result = data.result;
+      if (result.failed > 0 && (result.success > 0 || result.updated > 0)) {
+        // Partial success - show warning
+        toastWarning(data.message);
+      } else if (result.failed > 0) {
+        // All failed - show error
+        toastError(data.message);
+      } else {
+        // All successful - show success
+        toastSuccess(data.message);
+      }
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to mark bulk attendance",
-        variant: "destructive",
-      });
+      toastError(error.response?.data?.message || "Failed to mark bulk attendance");
     },
   });
 };
@@ -351,17 +342,10 @@ export const useUpdateCommunicationStatus = () => {
       queryClient.invalidateQueries({ queryKey: ["retryStudents"] });
       queryClient.invalidateQueries({ queryKey: ["monthlyStats"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
-      toast({
-        title: "Success",
-        description: "Communication status updated successfully",
-      });
+      toastSuccess("Communication status updated successfully");
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update communication status",
-        variant: "destructive",
-      });
+      toastError(error.response?.data?.message || "Failed to update communication status");
     },
   });
 };

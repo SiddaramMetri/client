@@ -7,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import AttendanceMarkingInterface from "./components/attendance-marking-interface";
+import EnhancedDailyAttendance from "./components/enhanced-daily-attendance";
 
 const DailyAttendancePage = () => {
   const [selectedClassId, setSelectedClassId] = useState<string>("");
@@ -73,8 +73,8 @@ const DailyAttendancePage = () => {
         </CardContent>
       </Card>
 
-      {/* Attendance Marking Interface */}
-      <AttendanceMarkingInterface 
+      {/* Enhanced Daily Attendance Interface */}
+      <EnhancedDailyAttendance 
         classId={selectedClassId} 
         date={selectedDate}
       />
