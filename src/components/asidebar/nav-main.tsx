@@ -61,11 +61,6 @@ export function NavMain() {
       icon: Users,
     },
     {
-      title: "Attendance",
-      url: `/dashboard/attendance`,
-      icon: Users,
-    },
-    {
       title: "Audit Logs",
       url: `/dashboard/audit-logs`,
       icon: Users,

@@ -13,7 +13,6 @@ export const PROTECTED_ROUTES = {
   USERS: "/dashboard/users",
   STUDENTS: "/dashboard/students",
   CLASSES: "/dashboard/classes",
-  ATTENDANCE: "/dashboard/attendance",
   AUDIT_LOGS: "/dashboard/audit-logs",
   USER_ROLES: "/dashboard/user-roles",
   PERMISSIONS: "/dashboard/permissions",
