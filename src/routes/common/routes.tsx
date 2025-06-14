@@ -15,6 +15,10 @@ import AuditLogsPage from "@/page/dashboard/audit-logs";
 import UserRoleAssignmentPage from "@/page/dashboard/user-roles";
 import PermissionsManagementPage from "@/page/dashboard/permissions";
 import RedisTestPage from "@/page/dashboard/redis-test";
+import AttendancePage from "@/page/dashboard/attendance";
+import DailyAttendancePage from "@/page/dashboard/attendance/daily";
+import AttendanceReportsPage from "@/page/dashboard/attendance/reports";
+import AttendanceConfigPage from "@/page/dashboard/attendance/config";
 
 export const authenticationRoutePaths = [
   { path: AUTH_ROUTES.SIGN_IN, element: <SignIn /> },
@@ -27,6 +31,10 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.USERS, element: <UsersPage /> },
   { path: PROTECTED_ROUTES.CLASSES, element: <ClassesPage /> },
   { path: PROTECTED_ROUTES.STUDENTS, element: <StudentsPage /> },
+  { path: PROTECTED_ROUTES.ATTENDANCE, element: <AttendancePage /> },
+  { path: PROTECTED_ROUTES.ATTENDANCE_DAILY, element: <DailyAttendancePage /> },
+  { path: PROTECTED_ROUTES.ATTENDANCE_REPORTS, element: <AttendanceReportsPage /> },
+  { path: PROTECTED_ROUTES.ATTENDANCE_CONFIG, element: <AttendanceConfigPage /> },
   { path: PROTECTED_ROUTES.AUDIT_LOGS, element: <AuditLogsPage /> },
   { path: PROTECTED_ROUTES.USER_ROLES, element: <UserRoleAssignmentPage /> },
   { path: PROTECTED_ROUTES.PERMISSIONS, element: <PermissionsManagementPage /> },
