@@ -142,6 +142,29 @@ export interface ClassAttendance {
   attendance: AttendanceData | null;
 }
 
+export interface StudentWithAttendance {
+  student: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    rollNumber: string;
+    parentInfo: {
+      primaryMobileNo: string;
+    };
+    classId: {
+      _id: string;
+      name: string;
+      section?: string;
+    };
+  };
+  class: {
+    _id: string;
+    name: string;
+    section?: string;
+  };
+  monthlyRecord: AttendanceRecord;
+}
+
 // API Hooks
 
 // Get attendance configuration
@@ -254,6 +277,36 @@ export const useGetClassAttendance = (classId?: string, date?: string) => {
       return response.data.attendance;
     },
     enabled: !!classId && !!date,
+  });
+};
+
+// Get class attendance by date with filtered students (only students with attendance records for that month)
+export const useGetClassAttendanceWithStudents = (classId?: string, date?: string) => {
+  return useQuery({
+    queryKey: ["classAttendanceWithStudents", classId, date],
+    queryFn: async (): Promise<ClassAttendance[]> => {
+      if (!classId || !date) return [];
+      const response = await API.get(`/attendance/class-with-students/${classId}`, {
+        params: { date }
+      });
+      return response.data.attendance;
+    },
+    enabled: !!classId && !!date,
+  });
+};
+
+// Get students who have attendance records for specific month/year
+export const useGetStudentsWithAttendance = (classId?: string, year?: string, month?: string) => {
+  return useQuery({
+    queryKey: ["studentsWithAttendance", classId, year, month],
+    queryFn: async (): Promise<StudentWithAttendance[]> => {
+      if (!classId || !year || !month) return [];
+      const response = await API.get(`/attendance/students/${classId}`, {
+        params: { year, month }
+      });
+      return response.data.students;
+    },
+    enabled: !!classId && !!year && !!month,
   });
 };
 

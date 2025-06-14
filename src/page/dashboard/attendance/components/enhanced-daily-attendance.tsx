@@ -6,8 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useGetClassAttendance, useMarkBulkAttendance } from "@/hooks/api/use-attendance";
-import { useStudents } from "@/hooks/api/use-students";
+import { useGetClassAttendance, useMarkBulkAttendance, useGetStudentsWithAttendance } from "@/hooks/api/use-attendance";
 import { toastError, toastSuccess } from "@/utils/toast";
 import { format } from "date-fns";
 import {
@@ -55,12 +54,12 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
   // Fetch existing attendance data
   const { data: existingAttendance, isLoading: attendanceLoading } = useGetClassAttendance(classId, formattedDate);
   
-  // Fetch students in the class - only active students
-  const { data: studentsData, isLoading: studentsLoading } = useStudents({
+  // Fetch students who have attendance records for this month/year
+  const { data: studentsWithAttendanceData, isLoading: studentsLoading } = useGetStudentsWithAttendance(
     classId,
-    limit: 1000,
-    isActive: true
-  });
+    currentYear,
+    currentMonth
+  );
 
   const markBulkAttendanceMutation = useMarkBulkAttendance();
 
@@ -79,24 +78,25 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
 
   // Initialize all students as present if no existing data
   useEffect(() => {
-    if (studentsData?.students && Object.keys(attendanceData).length === 0 && !attendanceLoading) {
+    if (studentsWithAttendanceData && Object.keys(attendanceData).length === 0 && !attendanceLoading) {
       const initialData: Record<string, string> = {};
-      studentsData.students.forEach(student => {
-        const studentId = student.id;
+      studentsWithAttendanceData.forEach(item => {
+        const studentId = item.student._id;
         if (studentId) {
           initialData[studentId] = "present";
         }
       });
       setAttendanceData(initialData);
     }
-  }, [studentsData?.students, attendanceData, attendanceLoading]);
+  }, [studentsWithAttendanceData, attendanceData, attendanceLoading]);
 
   // Filtered and searched students
   const filteredStudents = useMemo(() => {
-    if (!studentsData?.students) return [];
+    if (!studentsWithAttendanceData) return [];
     
-    return studentsData.students.filter(student => {
-      const studentId = student.id;
+    return studentsWithAttendanceData.filter(item => {
+      const student = item.student;
+      const studentId = student._id;
       if (!studentId) return false;
       
       const matchesSearch = searchQuery === "" || 
@@ -108,12 +108,12 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
         attendanceData[studentId] === statusFilter;
       
       return matchesSearch && matchesStatus;
-    });
-  }, [studentsData?.students, searchQuery, statusFilter, attendanceData]);
+    }).map(item => item.student); // Return just the student data for compatibility
+  }, [studentsWithAttendanceData, searchQuery, statusFilter, attendanceData]);
 
   // Attendance statistics
   const stats = useMemo(() => {
-    const students = studentsData?.students || [];
+    const students = studentsWithAttendanceData || [];
     const total = students.length;
     const marked = Object.keys(attendanceData).length;
     const present = Object.values(attendanceData).filter(status => status === "present").length;
@@ -122,7 +122,7 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
     const other = marked - present - absent - late;
     
     return { total, marked, present, absent, late, other };
-  }, [studentsData?.students, attendanceData]);
+  }, [studentsWithAttendanceData, attendanceData]);
 
   const handleStatusChange = (studentId: string, status: string) => {
     setAttendanceData(prev => ({
@@ -152,7 +152,7 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedStudents(new Set(filteredStudents.map(s => s._id || s.id).filter(Boolean)));
+      setSelectedStudents(new Set(filteredStudents.map(s => s._id).filter(Boolean)));
     } else {
       setSelectedStudents(new Set());
     }
@@ -178,8 +178,8 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
 
   const handleQuickMarkAll = (status: string) => {
     const updates: Record<string, string> = {};
-    (studentsData?.students || []).forEach(student => {
-      const studentId = student._id || student.id;
+    (studentsWithAttendanceData || []).forEach(item => {
+      const studentId = item.student._id;
       if (studentId) {
         updates[studentId] = status;
       }
@@ -195,20 +195,20 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
       return;
     }
 
-    const students = studentsData?.students || [];
+    const students = studentsWithAttendanceData || [];
     
     // Filter out students without valid IDs and add debugging
-    const validStudents = students.filter(student => {
-      const hasId = student && (student._id || student.id);
+    const validStudents = students.filter(item => {
+      const hasId = item.student && item.student._id;
       if (!hasId) {
-        console.warn('Student without valid ID:', student);
+        console.warn('Student without valid ID:', item.student);
       }
       return hasId;
     });
 
-    const attendanceList = validStudents.map(student => ({
-      studentId: student._id || student.id,
-      status: attendanceData[student._id || student.id] || "present"
+    const attendanceList = validStudents.map(item => ({
+      studentId: item.student._id,
+      status: attendanceData[item.student._id] || "present"
     }));
 
     if (attendanceList.length === 0) {
@@ -274,7 +274,7 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
     );
   }
 
-  const students = studentsData?.students || [];
+  const students = studentsWithAttendanceData || [];
 
   if (students.length === 0) {
     return (
@@ -283,8 +283,8 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
           <UserX className="h-16 w-16 text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold mb-2">No Students Found</h3>
           <p className="text-muted-foreground text-center max-w-md">
-            There are no active students in the selected class for {currentYear}-{currentMonth}. 
-            Please check if students are enrolled and active for this time period.
+            There are no students with attendance records in the selected class for {currentYear}-{currentMonth}. 
+            Please make sure students have been marked for attendance in this month, or select a different month.
           </p>
         </CardContent>
       </Card>
@@ -301,7 +301,7 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
             Attendance for {displayDate}
           </CardTitle>
           <CardDescription>
-            Class: {students[0]?.classId?.name} {students[0]?.classId?.section ? `- ${students[0]?.classId?.section}` : ""} 
+            Class: {students[0]?.student?.classId?.name} {students[0]?.student?.classId?.section ? `- ${students[0]?.student?.classId?.section}` : ""} 
             • {stats.total} students
             {isAttendanceMarked && (
               <Badge variant="outline" className="ml-2">
@@ -475,7 +475,7 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
         </CardHeader>
         <CardContent className="space-y-2">
           {filteredStudents.map((student, index) => {
-            const studentId = student._id || student.id;
+            const studentId = student._id;
             const studentStatus = attendanceData[studentId] || "present";
             const statusOption = getStatusOption(studentStatus);
             const isSelected = selectedStudents.has(studentId);
