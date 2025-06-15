@@ -15,6 +15,7 @@ export const PROTECTED_ROUTES = {
   CLASSES: "/dashboard/classes",
   ATTENDANCE: "/dashboard/attendance",
   ATTENDANCE_DAILY: "/dashboard/attendance/daily",
+  ATTENDANCE_MONTHLY: "/dashboard/attendance/monthly",
   ATTENDANCE_REPORTS: "/dashboard/attendance/reports",
   ATTENDANCE_CONFIG: "/dashboard/attendance/config",
   AUDIT_LOGS: "/dashboard/audit-logs",

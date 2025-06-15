@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Users, TrendingUp, AlertCircle, Calendar, BarChart3, Clock } from "lucide-react";
+import { Users, TrendingUp, AlertCircle, Calendar, BarChart3, Clock, CalendarDays } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ClassDropdown from "@/components/form/class-dropdown";
 import AttendanceDashboard from "./components/attendance-dashboard";
@@ -89,7 +89,7 @@ const AttendancePage = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-md transition-shadow cursor-pointer">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -103,6 +103,24 @@ const AttendancePage = () => {
               <Button className="w-full">
                 <Clock className="h-4 w-4 mr-2" />
                 Mark Today's Attendance
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CalendarDays className="h-5 w-5 text-purple-600" />
+              Monthly Summary
+            </CardTitle>
+            <CardDescription>View monthly attendance calendar</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/dashboard/attendance/monthly">
+              <Button variant="outline" className="w-full">
+                <CalendarDays className="h-4 w-4 mr-2" />
+                Monthly View
               </Button>
             </Link>
           </CardContent>

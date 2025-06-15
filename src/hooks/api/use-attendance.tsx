@@ -402,3 +402,70 @@ export const useUpdateCommunicationStatus = () => {
     },
   });
 };
+
+// Monthly Attendance Summary Interface
+export interface MonthlyAttendanceSummary {
+  classInfo: {
+    _id: string;
+    name: string;
+    section?: string;
+  };
+  year: string;
+  month: string;
+  monthName: string;
+  daysInMonth: number;
+  monthDays: number[];
+  students: StudentAttendanceSummary[];
+  overallStats: {
+    totalStudents: number;
+    averageAttendance: number;
+    totalWorkingDays: number;
+    totalHolidays: number;
+  };
+}
+
+export interface StudentAttendanceSummary {
+  srNo: number;
+  studentId: string;
+  studentName: string;
+  rollNumber: string;
+  parentInfo: {
+    primaryMobileNo: string;
+  };
+  dailyAttendance: DailyAttendanceCell[];
+  summary: {
+    totalAttended: number;
+    totalMissed: number;
+    totalLate: number;
+    totalHolidays: number;
+    totalLeave: number;
+    attendancePercentage: number;
+    workingDays: number;
+  };
+}
+
+export interface DailyAttendanceCell {
+  day: number;
+  status: string; // 'P', 'A', 'L', 'H', 'WO', etc.
+  fullStatus: string | null; // 'present', 'absent', etc.
+  color: string;
+  hasData: boolean;
+}
+
+// Get monthly attendance summary hook
+export const useMonthlyAttendanceSummary = (
+  classId: string,
+  year: string,
+  month: string,
+  enabled: boolean = true
+) => {
+  return useQuery({
+    queryKey: ["attendance", "monthly-summary", classId, year, month],
+    queryFn: async (): Promise<MonthlyAttendanceSummary> => {
+      const response = await API.get(`/attendance/summary/${classId}/${year}/${month}`);
+      return response.data.summary;
+    },
+    enabled: enabled && !!classId && !!year && !!month,
+    refetchOnWindowFocus: false,
+  });
+};
