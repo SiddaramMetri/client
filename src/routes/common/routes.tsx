@@ -18,6 +18,7 @@ import RedisTestPage from "@/page/dashboard/redis-test";
 import AttendancePage from "@/page/dashboard/attendance";
 import DailyAttendancePage from "@/page/dashboard/attendance/daily";
 import MonthlyAttendanceSummary from "@/pages/attendance/monthly-summary";
+import AuditTrailCalendar from "@/pages/attendance/audit-trail-calendar";
 import AttendanceReportsPage from "@/page/dashboard/attendance/reports";
 import AttendanceConfigPage from "@/page/dashboard/attendance/config";
 
@@ -35,6 +36,7 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.ATTENDANCE, element: <AttendancePage /> },
   { path: PROTECTED_ROUTES.ATTENDANCE_DAILY, element: <DailyAttendancePage /> },
   { path: PROTECTED_ROUTES.ATTENDANCE_MONTHLY, element: <MonthlyAttendanceSummary /> },
+  { path: PROTECTED_ROUTES.ATTENDANCE_AUDIT, element: <AuditTrailCalendar /> },
   { path: PROTECTED_ROUTES.ATTENDANCE_REPORTS, element: <AttendanceReportsPage /> },
   { path: PROTECTED_ROUTES.ATTENDANCE_CONFIG, element: <AttendanceConfigPage /> },
   { path: PROTECTED_ROUTES.AUDIT_LOGS, element: <AuditLogsPage /> },

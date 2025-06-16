@@ -245,7 +245,7 @@ const AttendanceCalendarGrid: React.FC<AttendanceCalendarGridProps> = ({ data })
                     <span className="text-sm">-</span>
                   </div>
                   <div className="w-48 min-w-[192px] px-3 py-4 text-left border-r border-gray-200 flex-shrink-0">
-                    <span className="text-sm font-bold">SUMMARY</span>
+                    <span className="text-sm font-bold">TOTALS</span>
                   </div>
                 </div>
 
@@ -261,23 +261,35 @@ const AttendanceCalendarGrid: React.FC<AttendanceCalendarGridProps> = ({ data })
                 {/* Overall Summary */}
                 <div className="flex bg-gray-200 flex-shrink-0">
                   <div className="w-20 min-w-[80px] px-2 py-4 text-center border-r border-gray-200 flex-shrink-0">
-                    <span className="text-sm font-bold text-green-700">
-                      {Math.round(data.students.reduce((sum, s) => sum + s.summary.totalAttended, 0) / data.students.length) || 0}
+                    <span 
+                      className="text-sm font-bold text-green-700" 
+                      title="Total days attended by all students"
+                    >
+                      {data.students.reduce((sum, s) => sum + s.summary.totalAttended, 0)}
                     </span>
                   </div>
                   <div className="w-20 min-w-[80px] px-2 py-4 text-center border-r border-gray-200 flex-shrink-0">
-                    <span className="text-sm font-bold text-red-700">
-                      {Math.round(data.students.reduce((sum, s) => sum + s.summary.totalMissed, 0) / data.students.length) || 0}
+                    <span 
+                      className="text-sm font-bold text-red-700"
+                      title="Total days missed by all students"
+                    >
+                      {data.students.reduce((sum, s) => sum + s.summary.totalMissed, 0)}
                     </span>
                   </div>
                   <div className="w-20 min-w-[80px] px-2 py-4 text-center border-r border-gray-200 flex-shrink-0">
-                    <span className="text-sm font-bold text-orange-700">
-                      {Math.round(data.students.reduce((sum, s) => sum + s.summary.totalLate, 0) / data.students.length) || 0}
+                    <span 
+                      className="text-sm font-bold text-orange-700"
+                      title="Total late arrivals by all students"
+                    >
+                      {data.students.reduce((sum, s) => sum + s.summary.totalLate, 0)}
                     </span>
                   </div>
                   <div className="w-20 min-w-[80px] px-2 py-4 text-center flex-shrink-0">
-                    <span className="text-sm font-bold text-blue-700">
-                      {data.overallStats.totalHolidays}
+                    <span 
+                      className="text-sm font-bold text-blue-700"
+                      title="Total holidays in this month"
+                    >
+                      {data.students.length > 0 ? data.students[0].summary.totalHolidays : 0}
                     </span>
                   </div>
                 </div>

@@ -105,6 +105,16 @@ export function NavMain() {
           icon: Calendar,
         },
         {
+          title: "Monthly Summary",
+          url: `/dashboard/attendance/monthly`,
+          icon: BarChart3,
+        },
+        {
+          title: "Audit Trail",
+          url: `/dashboard/attendance/audit-trail`,
+          icon: Calendar,
+        },
+        {
           title: "Reports",
           url: `/dashboard/attendance/reports`,
           icon: FileText,
@@ -174,7 +184,7 @@ export function NavMain() {
               <Collapsible
                 key={item.title}
                 open={shouldBeOpen}
-                onOpenChange={(open) => {
+                onOpenChange={(open: boolean) => {
                   if (open) {
                     // Add to open items if not already there
                     setOpenItems(prev => 
