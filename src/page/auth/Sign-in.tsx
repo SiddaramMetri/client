@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+// import { toast } from "@/hooks/use-toast";
 import { loginMutationFn } from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -26,6 +26,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useEffect } from "react";
+import { toastError, toastSuccess } from "@/utils/toast";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -62,11 +63,15 @@ const SignIn = () => {
           }
       }
 
-      toast({
-        title,
-        description,
-        variant: "destructive",
-      });
+      if (oauthError === "not_registered") {
+        toastError(title, description);
+      } else if (oauthError === "no_workspace") {
+        toastError(title, description);
+      } else if (oauthError === "auth_failed") {
+        toastError(title, description);
+      } else {
+        toastSuccess(title, description);
+      }
 
       // Clean up URL parameters after showing the error
       const newSearchParams = new URLSearchParams(searchParams);
@@ -80,7 +85,7 @@ const SignIn = () => {
       
       window.history.replaceState({}, "", newUrl);
     }
-  }, [searchParams, toast]);
+  }, [searchParams]);
 
   const formSchema = z.object({
     email: z.string().trim().email("Invalid email address").min(1, {

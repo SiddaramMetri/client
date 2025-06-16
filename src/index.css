@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Collapsible animations for navigation */
+@keyframes collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-collapsible-down {
+  animation: collapsible-down 150ms ease-out;
+}
+
+.animate-collapsible-up {
+  animation: collapsible-up 150ms ease-out;
+}
+
 /* ... */
 html,
 hody {
@@ -239,6 +270,119 @@ em-emoji-picker {
   button[data-placeholder] {
     @apply text-muted-foreground;
   }
+}
+
+/* React Toastify Custom Styles */
+.toast-custom {
+  @apply rounded-lg shadow-lg border border-border bg-background text-foreground;
+  font-family: 'DM Sans', serif;
+  min-height: 60px;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+
+.toast-body-custom {
+  @apply text-sm leading-relaxed;
+  padding: 0;
+  margin: 0;
+}
+
+.toast-progress-custom {
+  @apply bg-primary;
+}
+
+/* Toast type specific styles */
+.Toastify__toast--success {
+  @apply border-green-200 bg-green-50 text-green-800;
+}
+
+.Toastify__toast--error {
+  @apply border-red-200 bg-red-50 text-red-800;
+}
+
+.Toastify__toast--info {
+  @apply border-blue-200 bg-blue-50 text-blue-800;
+}
+
+.Toastify__toast--warning {
+  @apply border-yellow-200 bg-yellow-50 text-yellow-800;
+}
+
+/* Toast icons */
+.Toastify__toast--success .Toastify__toast-icon {
+  @apply text-green-600;
+}
+
+.Toastify__toast--error .Toastify__toast-icon {
+  @apply text-red-600;
+}
+
+.Toastify__toast--info .Toastify__toast-icon {
+  @apply text-blue-600;
+}
+
+.Toastify__toast--warning .Toastify__toast-icon {
+  @apply text-yellow-600;
+}
+
+/* Close button */
+.Toastify__close-button {
+  @apply text-muted-foreground hover:text-foreground transition-colors;
+  opacity: 0.7;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+
+/* Progress bar container */
+.Toastify__progress-bar {
+  height: 3px;
+}
+
+/* Container positioning and styling */
+.Toastify__toast-container {
+  width: auto;
+  min-width: 320px;
+  max-width: 480px;
+  padding: 16px;
+}
+
+/* Dark mode support */
+.dark .toast-custom {
+  @apply bg-card text-card-foreground border-border;
+}
+
+.dark .Toastify__toast--success {
+  @apply border-green-800 bg-green-950/50 text-green-200;
+}
+
+.dark .Toastify__toast--error {
+  @apply border-red-800 bg-red-950/50 text-red-200;
+}
+
+.dark .Toastify__toast--info {
+  @apply border-blue-800 bg-blue-950/50 text-blue-200;
+}
+
+.dark .Toastify__toast--warning {
+  @apply border-yellow-800 bg-yellow-950/50 text-yellow-200;
+}
+
+.dark .Toastify__toast--success .Toastify__toast-icon {
+  @apply text-green-400;
+}
+
+.dark .Toastify__toast--error .Toastify__toast-icon {
+  @apply text-red-400;
+}
+
+.dark .Toastify__toast--info .Toastify__toast-icon {
+  @apply text-blue-400;
+}
+
+.dark .Toastify__toast--warning .Toastify__toast-icon {
+  @apply text-yellow-400;
 }
 
 @layer base {

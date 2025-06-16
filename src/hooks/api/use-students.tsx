@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
+import { toastSuccess, toastError, toastWarning } from "@/utils/toast";
 import {
   getStudentsService,
   getStudentByIdService,
@@ -46,7 +46,6 @@ export const useStudent = (studentId: string) => {
 // Hook to create a new student
 export const useCreateStudent = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: (data: Partial<Task>) => createStudentService(data),
@@ -54,17 +53,10 @@ export const useCreateStudent = () => {
       // Invalidate and refetch students list
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() });
       
-      toast({
-        title: "Student Created",
-        description: "Student has been successfully added to the system",
-      });
+      toastSuccess("Student has been successfully added to the system");
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.message || "Failed to create student",
-      });
+      toastError(error.response?.data?.message || "Failed to create student");
     },
   });
 };
@@ -72,7 +64,6 @@ export const useCreateStudent = () => {
 // Hook to update a student
 export const useUpdateStudent = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: ({ studentId, data }: { studentId: string; data: Partial<Task> }) =>
@@ -85,17 +76,10 @@ export const useUpdateStudent = () => {
         queryKey: studentKeys.detail(variables.studentId) 
       });
       
-      toast({
-        title: "Student Updated",
-        description: "Student information has been successfully updated",
-      });
+      toastSuccess("Student information has been successfully updated");
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update student",
-      });
+      toastError(error.response?.data?.message || "Failed to update student");
     },
   });
 };
@@ -103,7 +87,6 @@ export const useUpdateStudent = () => {
 // Hook to delete a student
 export const useDeleteStudent = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: (studentId: string) => deleteStudentService(studentId),
@@ -115,17 +98,10 @@ export const useDeleteStudent = () => {
         queryKey: studentKeys.detail(variables) 
       });
       
-      toast({
-        title: "Student Deleted",
-        description: "Student has been successfully removed from the system",
-      });
+      toastSuccess("Student has been successfully removed from the system");
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete student",
-      });
+      toastError(error.response?.data?.message || "Failed to delete student");
     },
   });
 };
@@ -133,7 +109,6 @@ export const useDeleteStudent = () => {
 // Hook to upload Excel file with students
 export const useUploadStudentExcel = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: (file: File) => uploadStudentExcelService(file),
@@ -144,29 +119,15 @@ export const useUploadStudentExcel = () => {
       const { results } = data;
       
       if (results.success > 0 && results.failed === 0) {
-        toast({
-          title: "Upload Successful",
-          description: `Successfully uploaded ${results.success} students`,
-        });
+        toastSuccess(`Successfully uploaded ${results.success} students`);
       } else if (results.success > 0 && results.failed > 0) {
-        toast({
-          title: "Partial Upload",
-          description: `${results.success} students uploaded successfully, ${results.failed} failed`,
-        });
+        toastWarning(`${results.success} students uploaded successfully, ${results.failed} failed`);
       } else {
-        toast({
-          variant: "destructive",
-          title: "Upload Failed",
-          description: `Failed to upload students. ${results.failed} errors occurred.`,
-        });
+        toastError(`Failed to upload students. ${results.failed} errors occurred.`);
       }
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "Upload Error",
-        description: error.response?.data?.message || "Failed to upload Excel file",
-      });
+      toastError(error.response?.data?.message || "Failed to upload Excel file");
     },
   });
 };
@@ -187,7 +148,6 @@ export const usePrefetchStudent = () => {
 // Hook to toggle student status (activate/deactivate)
 export const useToggleStudentStatus = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: (studentId: string) => toggleStudentStatusService(studentId),
@@ -200,17 +160,10 @@ export const useToggleStudentStatus = () => {
         { student: data.student, message: data.message }
       );
       
-      toast({
-        title: "Status Updated",
-        description: data.message,
-      });
+      toastSuccess(data.message);
     },
     onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update student status",
-      });
+      toastError(error.response?.data?.message || "Failed to update student status");
     },
   });
 };

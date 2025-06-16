@@ -83,7 +83,32 @@ export const data: NavigationConfig = {
             title: "Attendance",
             url: "/dashboard/attendance",
             icon: IconDatabase,
-            items: [],
+            items: [
+                {
+                    title: "Dashboard",
+                    url: "/dashboard/attendance",
+                    icon: IconChartBar,
+                    permissions: ['students.view']
+                },
+                {
+                    title: "Daily Attendance",
+                    url: "/dashboard/attendance/daily",
+                    icon: IconCalendar,
+                    permissions: ['students.view']
+                },
+                {
+                    title: "Reports",
+                    url: "/dashboard/attendance/reports",
+                    icon: IconReport,
+                    permissions: ['students.view']
+                },
+                {
+                    title: "Configuration",
+                    url: "/dashboard/attendance/config",
+                    icon: IconSettings,
+                    permissions: ['students.view']
+                }
+            ],
             permissions: ['students.view']
         },
         {

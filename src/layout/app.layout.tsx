@@ -10,21 +10,25 @@ import { Outlet } from "react-router-dom";
 const AppLayout = () => {
   return (
     <AuthProvider>
-      <div className="w-full bg-slate-50">
+      <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-900">
         <SidebarProvider>
           <Asidebar />
-          <SidebarInset className="overflow-x-hidden">
-            <div>
-              <div className="sticky top-0 z-10 bg-background rounded-lg">
+          <SidebarInset className="overflow-x-hidden bg-slate-50 dark:bg-slate-900">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+              <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
                 <Header />
               </div>
-              <div className="flex flex-1 flex-col">
-              <div className="@container/main flex flex-1 flex-col gap-2 px-4">
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Outlet />
-                </Suspense>
+              <div className="flex flex-1 flex-col bg-slate-50 dark:bg-slate-900">
+                <div className="@container/main flex flex-1 flex-col gap-2 px-4 py-4 bg-slate-50 dark:bg-slate-900">
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center h-64 bg-background rounded-lg">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  }>
+                    <Outlet />
+                  </Suspense>
+                </div>
               </div>
-            </div>
               <CreateWorkspaceDialog />
               <CreateProjectDialog />
             </div>

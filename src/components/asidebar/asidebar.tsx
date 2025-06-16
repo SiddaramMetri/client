@@ -37,30 +37,29 @@ const Asidebar = () => {
 
   return (
     <>
-      <Sidebar collapsible="icon" variant="inset">
-        <SidebarHeader className="!py-0 dark:bg-background ">
-          <div className="flex h-[50px] items-center justify-start w-full px-1">
+      <Sidebar collapsible="icon" variant="inset" className="bg-background border-r border-border">
+        <SidebarHeader className="!py-0 bg-background border-b border-border">
+          <div className="flex h-[50px] items-center justify-start w-full px-1 bg-background">
             <Logo url={`/dashboard`} />
             {open && (
               <Link
                 to={`/dashboard`}
-                className="hidden md:flex ml-2 items-center gap-2 self-center font-medium"
+                className="hidden md:flex ml-2 items-center gap-2 self-center font-medium text-foreground"
               >
                 CMSys <small className="text-xs text-muted-foreground">v1.0</small>
               </Link>
             )}
           </div>
         </SidebarHeader>
-        <SidebarContent className=" !mt-0 dark:bg-background">
+        <SidebarContent className="!mt-0 bg-background">
           <SidebarGroup className="!py-0">
-            <SidebarGroupContent>
+            <SidebarGroupContent className="bg-background">
               <Separator />
               <NavMain />
-
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter className="dark:bg-background">
+        <SidebarFooter className="bg-background border-t border-border">
           <SidebarMenu>
             <SidebarMenuItem>
               {isLoading ? (

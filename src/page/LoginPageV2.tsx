@@ -47,7 +47,7 @@ const LoginPage = () => {
   //   window.location.href = "/dashboard";
   // };
 
-  let loading = false;
+  const loading = false;
 
   const handleOAuth = (provider: string) => {
     
