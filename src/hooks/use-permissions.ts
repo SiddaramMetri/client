@@ -1,6 +1,6 @@
 import { PermissionType } from "@/constant";
 import { UserType, WorkspaceWithMembersType } from "@/types/api.type";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@/context/auth-provider";
 
 export interface UserPermissions {

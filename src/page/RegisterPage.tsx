@@ -19,10 +19,10 @@ const RegisterPage = () => {
     const passwordRef = useRef<HTMLInputElement>(null);
 
     const mutation = useMutation({
-        mutationFn: register,
-        onSuccess: (response) => {
+        mutationFn: (data: { name: string; email: string; password: string }) => register(data),
+        onSuccess: (response: { accessToken: string }) => {
             console.log('Login successful');
-            setToken(response.data.accessToken);
+            setToken(response.accessToken);
             navigate('/dashboard');
         },
     });

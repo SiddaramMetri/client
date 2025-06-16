@@ -9,7 +9,6 @@ import {
   uploadStudentExcelService,
   toggleStudentStatusService,
   GetStudentsParams,
-  StudentUploadResult,
 } from "@/services/student.service";
 import { Task } from "@/page/dashboard/students/data/schema";
 
@@ -49,7 +48,7 @@ export const useCreateStudent = () => {
 
   return useMutation({
     mutationFn: (data: Partial<Task>) => createStudentService(data),
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate and refetch students list
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() });
       
@@ -68,7 +67,7 @@ export const useUpdateStudent = () => {
   return useMutation({
     mutationFn: ({ studentId, data }: { studentId: string; data: Partial<Task> }) =>
       updateStudentService(studentId, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       // Invalidate and refetch students list
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() });
       // Invalidate specific student detail
@@ -90,7 +89,7 @@ export const useDeleteStudent = () => {
 
   return useMutation({
     mutationFn: (studentId: string) => deleteStudentService(studentId),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       // Invalidate and refetch students list
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() });
       // Remove specific student detail from cache

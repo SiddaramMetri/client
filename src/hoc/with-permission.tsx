@@ -30,7 +30,6 @@ export const withRBACPermission = (
   const WithRBACPermission = (props: any) => {
     const { user, isLoading } = useAuthContext();
     const {
-      hasPermission,
       hasAnyPermission,
       hasAllPermissions,
       hasRole,
