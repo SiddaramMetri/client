@@ -90,7 +90,17 @@ const AuditTrailDetailModal: React.FC<AuditTrailDetailModalProps> = ({
     });
   };
 
-  const entriesWithChanges = entries.filter(entry => entry.hasChanges);
+  // Filter entries to only show unique students with changes
+  const uniqueEntries = React.useMemo(() => {
+    const seenStudents = new Set();
+    return entries.filter(entry => {
+      if (seenStudents.has(entry.student.id)) {
+        return false;
+      }
+      seenStudents.add(entry.student.id);
+      return entry.hasChanges && entry.changeCount > 0;
+    });
+  }, [entries]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -100,9 +110,8 @@ const AuditTrailDetailModal: React.FC<AuditTrailDetailModalProps> = ({
             Audit Trail - {monthName} {date}, {year}
           </DialogTitle>
           <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
-            <span>Total Students: {entries.length}</span>
-            <span>Students with Changes: {entriesWithChanges.length}</span>
-            <span>Total Changes: {entries.reduce((sum, entry) => sum + entry.changeCount, 0)}</span>
+            <span>Students with Changes: {uniqueEntries.length}</span>
+            <span>Total Changes: {uniqueEntries.reduce((sum, entry) => sum + entry.changeCount, 0)}</span>
           </div>
         </DialogHeader>
 
@@ -110,7 +119,7 @@ const AuditTrailDetailModal: React.FC<AuditTrailDetailModalProps> = ({
 
         <ScrollArea className="flex-1 px-6 pb-6">
           <div className="space-y-6">
-            {entriesWithChanges.length === 0 ? (
+            {uniqueEntries.length === 0 ? (
               <div className="text-center py-8">
                 <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Changes Found</h3>
@@ -119,7 +128,7 @@ const AuditTrailDetailModal: React.FC<AuditTrailDetailModalProps> = ({
                 </p>
               </div>
             ) : (
-              entriesWithChanges.map((entry) => (
+              uniqueEntries.map((entry) => (
                 <div key={entry.student.id} className="border rounded-lg p-4 bg-white">
                   {/* Student Header */}
                   <div className="flex items-center justify-between mb-4">
@@ -150,98 +159,104 @@ const AuditTrailDetailModal: React.FC<AuditTrailDetailModalProps> = ({
                     </h5>
 
                     <div className="space-y-3">
-                      {entry.auditTrail.map((audit: AuditTrailEntry, auditIndex: number) => (
-                        <div
-                          key={auditIndex}
-                          className={cn(
-                            "border-l-4 pl-4 py-2",
-                            audit.isInitialEntry 
-                              ? "border-green-400 bg-green-50" 
-                              : "border-blue-400 bg-blue-50"
-                          )}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              {audit.isInitialEntry ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <AlertCircle className="h-4 w-4 text-blue-600" />
-                              )}
-                              <span className="text-xs font-medium text-gray-700">
-                                {audit.isInitialEntry ? 'Initial Entry' : 'Status Changed'}
-                              </span>
-                            </div>
-                            <span className="text-xs text-gray-500">
-                              {formatDateTime(audit.changedAt)}
-                            </span>
-                          </div>
-
-                          {/* Status Change */}
-                          <div className="flex items-center gap-2 mb-2">
-                            {audit.previousStatus ? (
-                              <>
-                                <Badge className={cn("text-xs", getStatusColor(audit.previousStatus))}>
-                                  {getStatusDisplay(audit.previousStatus)}
-                                </Badge>
-                                <ArrowRight className="h-3 w-3 text-gray-400" />
-                              </>
-                            ) : (
-                              <span className="text-xs text-gray-500">New → </span>
+                      {entry.auditTrail && entry.auditTrail.length > 0 ? (
+                        entry.auditTrail.map((audit: AuditTrailEntry, auditIndex: number) => (
+                          <div
+                            key={auditIndex}
+                            className={cn(
+                              "border-l-4 pl-4 py-2",
+                              audit.isInitialEntry 
+                                ? "border-green-400 bg-green-50" 
+                                : "border-blue-400 bg-blue-50"
                             )}
-                            <Badge className={cn("text-xs", getStatusColor(audit.newStatus))}>
-                              {getStatusDisplay(audit.newStatus)}
-                            </Badge>
-                          </div>
-
-                          {/* Change Reason */}
-                          {audit.changeReason && (
-                            <div className="text-xs text-gray-600 mb-2">
-                              <span className="font-medium">Reason: </span>
-                              {audit.changeReason}
-                            </div>
-                          )}
-
-                          {/* Remarks Change */}
-                          {(audit.previousRemarks || audit.newRemarks) && (
-                            <div className="text-xs text-gray-600 mb-2">
-                              <span className="font-medium">Remarks: </span>
-                              {audit.previousRemarks && (
-                                <span className="line-through text-red-600">{audit.previousRemarks}</span>
-                              )}
-                              {audit.previousRemarks && audit.newRemarks && ' → '}
-                              {audit.newRemarks && (
-                                <span className="text-green-600">{audit.newRemarks}</span>
-                              )}
-                            </div>
-                          )}
-
-                          {/* User Information */}
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              <span>
-                                {audit.changedBy.firstName} {audit.changedBy.lastName}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                {audit.isInitialEntry ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                                )}
+                                <span className="text-xs font-medium text-gray-700">
+                                  {audit.isInitialEntry ? 'Initial Entry' : 'Status Changed'}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {formatDateTime(audit.changedAt)}
                               </span>
                             </div>
-                            {audit.ipAddress && (
+
+                            {/* Status Change */}
+                            <div className="flex items-center gap-2 mb-2">
+                              {audit.previousStatus ? (
+                                <>
+                                  <Badge className={cn("text-xs", getStatusColor(audit.previousStatus))}>
+                                    {getStatusDisplay(audit.previousStatus)}
+                                  </Badge>
+                                  <ArrowRight className="h-3 w-3 text-gray-400" />
+                                </>
+                              ) : (
+                                <span className="text-xs text-gray-500">New → </span>
+                              )}
+                              <Badge className={cn("text-xs", getStatusColor(audit.newStatus))}>
+                                {getStatusDisplay(audit.newStatus)}
+                              </Badge>
+                            </div>
+
+                            {/* Change Reason */}
+                            {audit.changeReason && (
+                              <div className="text-xs text-gray-600 mb-2">
+                                <span className="font-medium">Reason: </span>
+                                {audit.changeReason}
+                              </div>
+                            )}
+
+                            {/* Remarks Change */}
+                            {(audit.previousRemarks || audit.newRemarks) && (
+                              <div className="text-xs text-gray-600 mb-2">
+                                <span className="font-medium">Remarks: </span>
+                                {audit.previousRemarks && (
+                                  <span className="line-through text-red-600">{audit.previousRemarks}</span>
+                                )}
+                                {audit.previousRemarks && audit.newRemarks && ' → '}
+                                {audit.newRemarks && (
+                                  <span className="text-green-600">{audit.newRemarks}</span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* User Information */}
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
                               <div className="flex items-center gap-1">
-                                <Globe className="h-3 w-3" />
-                                <span>{audit.ipAddress}</span>
+                                <User className="h-3 w-3" />
+                                <span>
+                                  {audit.changedBy.firstName} {audit.changedBy.lastName}
+                                </span>
+                              </div>
+                              {audit.ipAddress && (
+                                <div className="flex items-center gap-1">
+                                  <Globe className="h-3 w-3" />
+                                  <span>{audit.ipAddress}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* User Agent (truncated) */}
+                            {audit.userAgent && (
+                              <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
+                                <Monitor className="h-3 w-3" />
+                                <span className="truncate max-w-md" title={audit.userAgent}>
+                                  {audit.userAgent}
+                                </span>
                               </div>
                             )}
                           </div>
-
-                          {/* User Agent (truncated) */}
-                          {audit.userAgent && (
-                            <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
-                              <Monitor className="h-3 w-3" />
-                              <span className="truncate max-w-md" title={audit.userAgent}>
-                                {audit.userAgent}
-                              </span>
-                            </div>
-                          )}
+                        ))
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-sm text-gray-500">No detailed audit trail available</p>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
 
