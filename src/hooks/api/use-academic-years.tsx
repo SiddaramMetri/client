@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { academicYearService, AcademicYear, AcademicYearFilters } from '@/services/academicYear.service';
+import { academicYearService, AcademicYearFilters } from '@/services/academicYear.service';
 
 export const useAcademicYears = (filters: AcademicYearFilters = {}) => {
   return useQuery({

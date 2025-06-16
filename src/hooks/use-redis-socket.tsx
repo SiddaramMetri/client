@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io, type Socket } from 'socket.io-client';
 import { RedisTestResult } from './api/use-redis-test';
 
 interface RedisTestStatus {
@@ -68,7 +68,7 @@ export const useRedisSocket = (): UseRedisSocketReturn => {
     });
 
     // Redis test events
-    socket.on('redis-test-connected', (data) => {
+    socket.on('redis-test-connected', (data: any) => {
       console.log('✅ Redis test service connected:', data);
     });
 

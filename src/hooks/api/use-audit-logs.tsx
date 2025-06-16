@@ -109,7 +109,6 @@ export const useRealtimeAuditLogs = (filters: AuditLogFilters = {}) => {
 // Export individual hooks for convenience
 export {
   auditLogService,
-  auditLogKeys,
 };
 
 // Type exports

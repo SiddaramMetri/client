@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { classService, Class, ClassFilters, CreateClassData, UpdateClassData } from '@/services/class.service';
+import { classService, ClassFilters, CreateClassData, UpdateClassData } from '@/services/class.service';
 
 // Hook for fetching classes with pagination and filters
 export const useClasses = (filters: ClassFilters = {}) => {

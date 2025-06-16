@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toastSuccess, toastError } from "@/utils/toast";
+
+// Add temporary toastWarning function
+const toastWarning = (message: string) => {
+  console.warn(message);
+  // You can implement proper warning toast here if needed
+};
 import API from "@/lib/axios-client";
 
 // Types
