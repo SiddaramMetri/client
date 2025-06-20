@@ -11,7 +11,7 @@ const WorkspaceDashboard = () => {
   const { onOpen } = useCreateProjectDialog();
   return (
     <RBACPermissionGuard 
-    permissions="dashboard:view"
+    permissions="system:manage"
     fallback={
       <div className="flex items-center justify-center h-64">
         <Card className="p-6">
@@ -19,7 +19,7 @@ const WorkspaceDashboard = () => {
             <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold mb-2">Super Admin Access Required</h3>
             <p className="text-gray-600">Only super administrators can access user role management.</p>
-            <p className="text-sm text-gray-500 mt-2">Required permission: dashboard:manage</p>
+            <p className="text-sm text-gray-500 mt-2">Required permission: system:manage</p>
           </CardContent>
         </Card>
       </div>

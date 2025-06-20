@@ -20,14 +20,11 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  useCreatePermission,
   useDeletePermission,
   useDeleteRole,
   usePermissions,
   useRoles,
   useRoleStats,
-  useUpdatePermission,
-  useUpdateRole,
   useUserRoles,
   useUserRoleStats
 } from '@/hooks/api/use-rbac';
@@ -49,13 +46,9 @@ function PermissionsManagementPage() {
   const [deletePermissionOpen, setDeletePermissionOpen] = useState(false);
 
   const { 
-    hasPermission, 
     userPermissions, 
     isSuperAdmin, 
     isAdmin,
-    canCreate,
-    canUpdate,
-    canDelete 
   } = useRBACPermissions();
 
   // Fetch data using the RBAC hooks
@@ -66,10 +59,7 @@ function PermissionsManagementPage() {
   const { data: userRoleStats } = useUserRoleStats();
 
   // Mutation hooks for CRUD operations
-  const updateRoleMutation = useUpdateRole();
   const deleteRoleMutation = useDeleteRole();
-  const createPermissionMutation = useCreatePermission();
-  const updatePermissionMutation = useUpdatePermission();
   const deletePermissionMutation = useDeletePermission();
 
   const roles = rolesData?.data || [];
@@ -93,15 +83,6 @@ function PermissionsManagementPage() {
     userRole.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Group permissions by module for better organization
-  const groupedPermissions = permissions.reduce((acc: any, permission: any) => {
-    const module = permission.module || 'other';
-    if (!acc[module]) {
-      acc[module] = [];
-    }
-    acc[module].push(permission);
-    return acc;
-  }, {});
 
   // CRUD operation handlers
   const handleEditRole = (role: any) => {

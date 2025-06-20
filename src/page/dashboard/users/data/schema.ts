@@ -31,6 +31,7 @@ export const userSchema = z.object({
 })
 
 export type User = z.infer<typeof userSchema>
+export type UsersTask = User
 
 // Form validation schemas
 export const createUserFormSchema = z.object({

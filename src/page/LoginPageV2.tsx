@@ -7,39 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { login } from "@/http/api";
-import useTokenStore from "@/store";
-import { useMutation } from "@tanstack/react-query";
 import { AlertCircle, GraduationCap, Loader2 } from "lucide-react";
-import { useRef } from "react";
-import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-  const setToken = useTokenStore((state) => state.setToken);
-
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-
-  const mutation = useMutation({
-    mutationFn: login,
-    onSuccess: (response) => {
-      setToken(response.data.accessToken);
-      navigate("/dashboard");
-    },
-  });
-
-  const handleLoginSubmit = () => {
-    const email = emailRef.current?.value;
-    const password = passwordRef.current?.value;
-    console.log("data", { email, password });
-
-    if (!email || !password) {
-      return alert("Please enter email and password");
-    }
-
-    mutation.mutate({ email, password });
-  };
+  
 
   // const handleGoogleLogin = () => {
   // Implement Google login logic here

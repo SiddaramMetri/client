@@ -1,8 +1,11 @@
+import { RBACPermissionGuard } from "@/components/resuable/permission-guard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/table/data-table";
 import { useToast } from "@/components/ui/use-toast";
+import { withRBACPermission } from "@/hoc/with-permission";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { useRBACPermissions } from "@/hooks/use-permissions";
 import { useUserDialog } from "@/hooks/use-user-dialog";
 import {
   deleteUser,
@@ -19,21 +22,15 @@ import {
 import {
   Loader2,
   RefreshCw,
-  UserCheck,
-  UserPlus,
-  Users,
-  UserX,
   Shield,
+  UserPlus
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AddUserDialog from "./components/add-user-dialog";
+import CompactStatsCards from "./components/compact-stats-cards";
 import EditUserDialog from "./components/edit-user-dialog";
 import { createColumns } from "./data/columns";
 import { User } from "./data/schema";
-import CompactStatsCards from "./components/compact-stats-cards";
-import { RBACPermissionGuard } from "@/components/resuable/permission-guard";
-import { useRBACPermissions } from "@/hooks/use-permissions";
-import { withRBACPermission } from "@/hoc/with-permission";
 
 function UsersPage() {
   // State for filtering and pagination
@@ -203,11 +200,6 @@ function UsersPage() {
     setPage(1); // Reset to first page when searching
   };
 
-  // Handle status filter change
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-    setPage(1); // Reset to first page when filtering
-  };
 
   const users = usersData?.data || [];
   const totalPages = usersData?.totalPages || 0;

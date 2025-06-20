@@ -26,7 +26,7 @@ import { ClassData } from "./data/schema";
 export default function ClassesPage() {
   // State for filtering and pagination
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
@@ -119,11 +119,6 @@ export default function ClassesPage() {
     setPage(1); // Reset to first page when searching
   };
 
-  // Handle status filter change
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-    setPage(1); // Reset to first page when filtering
-  };
 
   const classes = classesData?.data || [];
   const totalPages = classesData?.pagination.totalPages || 0;

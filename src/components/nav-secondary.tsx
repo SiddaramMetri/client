@@ -1,4 +1,3 @@
-import * as React from "react"
 import { type Icon } from "@tabler/icons-react"
 import { LucideIcon } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"

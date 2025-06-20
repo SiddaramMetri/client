@@ -40,7 +40,6 @@ export const RBACPermissionGuard: React.FC<RBACPermissionGuardProps> = ({
   customMessage = "You do not have permission to view this content"
 }) => {
   const {
-    hasPermission,
     hasAnyPermission,
     hasAllPermissions,
     hasRole,

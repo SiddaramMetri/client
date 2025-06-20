@@ -1,15 +1,12 @@
 import {
   SidebarGroup,
 } from "@/components/ui/sidebar";
-import useGetProjectsInWorkspaceQuery from "@/hooks/api/use-get-projects";
 import useLegacyConfirmDialog from "@/hooks/use-confirm-dialog";
 import { toast } from "@/hooks/use-toast";
 import useWorkspaceId from "@/hooks/use-workspace-id";
 import { deleteProjectMutationFn } from "@/lib/api";
-import { PaginationType } from "@/types/api.type";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ConfirmDialog } from "../resuable/confirm-dialog";
 
 export function NavProjects() {
@@ -18,24 +15,14 @@ export function NavProjects() {
   const queryClient = useQueryClient();
   const workspaceId = useWorkspaceId();
 
-  const { context, open, onOpenDialog, onCloseDialog } = useLegacyConfirmDialog();
+  const { context, open,  onCloseDialog } = useLegacyConfirmDialog();
 
-  const [pageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
 
   const { mutate, isPending: isLoading } = useMutation({
     mutationFn: deleteProjectMutationFn,
   });
 
-  const { data, isPending, isFetching, isError } =
-    useGetProjectsInWorkspaceQuery({
-      workspaceId,
-      pageSize,
-      pageNumber,
-    });
 
-  const pagination = data?.pagination || ({} as PaginationType);
-  const hasMore = pagination?.totalPages > pageNumber;
 
 
   const handleConfirm = () => {

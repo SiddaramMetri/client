@@ -101,36 +101,6 @@ export default function UploadStudentsDialog({
     }
   };
 
-  const handleDownloadTemplate = async () => {
-    try {
-      // Start the download using a direct blob approach
-      const blobData = await downloadStudentTemplateService();
-      
-      // Create a download link and trigger it
-      const url = window.URL.createObjectURL(blobData);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "student_template.xlsx");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      
-      toast({
-        title: "Template Downloaded",
-        description: "Student template has been downloaded successfully"
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Failed to download template';
-        
-      toast({
-        variant: "error",
-        title: "Download Failed",
-        description: errorMessage,
-      });
-    }
-  };
 
   const handleClose = () => {
     setFile(null);

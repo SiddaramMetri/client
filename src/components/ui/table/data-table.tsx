@@ -28,11 +28,7 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import TableSkeleton from "@/components/skeleton-loaders/table-skeleton";
 
 interface DataTableProps<TData, TValue> {
-  columns: (props: {
-    onView: (row: TData) => void;
-    onEdit: (row: TData) => void;
-    onDelete: (row: TData) => void;
-  }) => ColumnDef<TData, TValue>[];
+  columns: ColumnDef<TData, TValue>[];
   data: TData[];
   statuses?: { label: string; value: string }[];
   priorities?: { label: string; value: string }[];

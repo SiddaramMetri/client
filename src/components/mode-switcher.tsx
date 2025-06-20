@@ -6,7 +6,7 @@ import { useThemeConfig } from "@/components/active-theme";
 import { Button } from "@/components/ui/button";
 
 export function ModeSwitcher() {
-  const { activeTheme, setActiveTheme } = useThemeConfig();
+  const {  setActiveTheme } = useThemeConfig();
 
   const toggleTheme = React.useCallback(() => {
     const isDark = document.documentElement.classList.contains("dark");

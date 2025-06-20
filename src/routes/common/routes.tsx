@@ -17,8 +17,8 @@ import PermissionsManagementPage from "@/page/dashboard/permissions";
 import RedisTestPage from "@/page/dashboard/redis-test";
 import AttendancePage from "@/page/dashboard/attendance";
 import DailyAttendancePage from "@/page/dashboard/attendance/daily";
-import MonthlyAttendanceSummary from "@/pages/attendance/monthly-summary";
-import AuditTrailCalendar from "@/pages/attendance/audit-trail-calendar";
+import MonthlyAttendanceSummary from "@/page/dashboard/attendance/components/monthly-summary";
+import AuditTrailCalendar from "@/page/dashboard/attendance/components/audit-trail-calendar";
 import AttendanceReportsPage from "@/page/dashboard/attendance/reports";
 import AttendanceConfigPage from "@/page/dashboard/attendance/config";
 

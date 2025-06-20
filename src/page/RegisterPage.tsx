@@ -20,10 +20,12 @@ const RegisterPage = () => {
 
     const mutation = useMutation({
         mutationFn: (data: { name: string; email: string; password: string }) => register(data),
-        onSuccess: (response: { accessToken: string }) => {
-            console.log('Login successful');
-            setToken(response.accessToken);
-            navigate('/dashboard');
+        onSuccess: (response: any) => {
+            console.log('Registration successful');
+            if (response?.accessToken) {
+                setToken(response.accessToken);
+                navigate('/dashboard');
+            }
         },
     });
 

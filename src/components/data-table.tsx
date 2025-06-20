@@ -1,11 +1,6 @@
 
 
 import {
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
   type DragEndEvent,
   type UniqueIdentifier
 } from "@dnd-kit/core"
@@ -24,7 +19,6 @@ import {
   IconChevronsRight,
   IconCircleCheckFilled,
   IconDotsVertical,
-  IconGripVertical,
   IconLayoutColumns,
   IconLoader,
   IconPlus
@@ -105,24 +99,24 @@ export const schema = z.object({
 })
 
 // Create a separate component for the drag handle
-function DragHandle({ id }: { id: number }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  })
+// function DragHandle({ id }: { id: number }) {
+//   const { attributes, listeners } = useSortable({
+//     id,
+//   })
 
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  )
-}
+//   return (
+//     <Button
+//       {...attributes}
+//       {...listeners}
+//       variant="ghost"
+//       size="icon"
+//       className="text-muted-foreground size-7 hover:bg-transparent"
+//     >
+//       <IconGripVertical className="text-muted-foreground size-3" />
+//       <span className="sr-only">Drag to reorder</span>
+//     </Button>
+//   )
+// }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
   {
@@ -243,7 +237,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
           <Select>
             <SelectTrigger
               className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-              size="sm"
+              
               id={`${row.original.id}-reviewer`}
             >
               <SelectValue placeholder="Assign reviewer" />
@@ -278,7 +272,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
           <DropdownMenuItem>Make a copy</DropdownMenuItem>
           <DropdownMenuItem>Favorite</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+          <DropdownMenuItem>Delete</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
@@ -327,12 +321,7 @@ export function DataTable({
     pageIndex: 0,
     pageSize: 10,
   })
-  const sortableId = React.useId()
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
+  
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
     () => data?.map(({ id }) => id) || [],

@@ -36,7 +36,6 @@ export const PermissionButton: React.FC<PermissionButtonProps> = ({
   ...props
 }) => {
   const {
-    hasPermission,
     hasAnyPermission,
     hasAllPermissions,
     hasRole,

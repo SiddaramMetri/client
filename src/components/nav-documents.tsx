@@ -40,27 +40,6 @@ export function NavDocuments({
   items: DocumentItem[];
 }) {
   const { isMobile } = useSidebar();
-  const pathname = useLocation().pathname;
-
-  const isActive = (path: string) => {
-    // Remove trailing slash for consistent comparison
-    const currentPath = pathname.replace(/\/$/, '');
-    const itemPath = path.replace(/\/$/, '');
-
-    // For dashboard, only match exact path
-    if (itemPath === '/dashboard') {
-      return currentPath === '/dashboard';
-    }
-
-    // For other routes, match exact path or direct child routes
-    const pathSegments = itemPath.split('/');
-    const currentSegments = currentPath.split('/');
-    
-    // Must have the same number of segments or be a direct child
-    return currentPath === itemPath || 
-           (currentPath.startsWith(itemPath) && 
-            currentSegments.length === pathSegments.length + 1);
-  };
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">

@@ -1,7 +1,7 @@
-import { ColumnDef } from "@tanstack/react-table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,13 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header"
-import { MoreHorizontal, Edit, Trash, Eye, UserCheck, UserX } from "lucide-react"
-import { User } from "./schema"
-import { formatDistanceToNow } from "date-fns"
-import { RBACPermissionGuard } from "@/components/resuable/permission-guard"
 import { useRBACPermissions } from "@/hooks/use-permissions"
+import { ColumnDef } from "@tanstack/react-table"
+import { formatDistanceToNow } from "date-fns"
+import { Edit, Eye, MoreHorizontal, Trash, UserCheck, UserX } from "lucide-react"
+import { User } from "./schema"
 
 interface ActionsProps {
   user: User;

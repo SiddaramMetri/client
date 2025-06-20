@@ -1,24 +1,4 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { RBACPermissionGuard } from '@/components/resuable/permission-guard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,26 +9,44 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  MoreHorizontal, 
-  Search, 
-  Crown, 
-  Shield, 
-  Users, 
-  Eye,
-  Copy,
-  AlertTriangle,
-  CheckCircle2
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
-import { RBACPermissionGuard } from '@/components/resuable/permission-guard';
-import { useRoles, useDeleteRole } from '@/hooks/api/use-rbac';
-import EnhancedRoleDialog from './enhanced-role-dialog';
-import EditRoleDialog from './edit-role-dialog';
+import { useDeleteRole, useRoles } from '@/hooks/api/use-rbac';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Copy,
+  Crown,
+  Edit,
+  Eye,
+  MoreHorizontal,
+  Search,
+  Shield,
+  Trash2,
+  Users
+} from 'lucide-react';
+import { useState } from 'react';
 import CreateRoleDialog from './create-role-dialog';
+import EditRoleDialog from './edit-role-dialog';
 
 export default function RolesManagement() {
   const [searchTerm, setSearchTerm] = useState('');

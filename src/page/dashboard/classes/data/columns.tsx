@@ -223,3 +223,10 @@ export const createColumns = (actions: {
     enableHiding: false,
   },
 ];
+
+// Default columns for simple usage
+export const columns = createColumns({
+  onView: () => {},
+  onEdit: () => {},
+  onDelete: () => {},
+});

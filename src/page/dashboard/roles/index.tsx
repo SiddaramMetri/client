@@ -1,4 +1,3 @@
-import React from 'react';
 import { RBACPermissionGuard } from '@/components/resuable/permission-guard';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';

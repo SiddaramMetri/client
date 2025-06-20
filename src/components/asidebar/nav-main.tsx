@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import * as React from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -59,14 +58,6 @@ export function NavMain() {
     
     // Add similar logic for other expandable menus if needed in the future
   }, [pathname]); // Only depend on pathname, not openItems to avoid loops
-
-  const toggleItem = (title: string) => {
-    setOpenItems(prev => 
-      prev.includes(title) 
-        ? prev.filter(item => item !== title)
-        : [...prev, title]
-    );
-  };
 
   const items: ItemType[] = [
     {

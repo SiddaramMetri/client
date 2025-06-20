@@ -8,6 +8,8 @@ const ORDER_SERVICE = '/api/order';
 // Auth service
 export const login = (credentials: Credentials) =>
     api.post(`${AUTH_SERVICE}/auth/login`, credentials);
+export const register = (data: { name: string; email: string; password: string }) =>
+    api.post(`${AUTH_SERVICE}/auth/register`, data);
 export const self = () => api.get(`${AUTH_SERVICE}/auth/self`);
 export const logout = () => api.post(`${AUTH_SERVICE}/auth/logout`);
 export const getUsers = (queryString: string) => api.get(`${AUTH_SERVICE}/users?${queryString}`);

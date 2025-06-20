@@ -36,6 +36,8 @@ interface ViewStudentDialogProps {
   studentId: string | null;
 }
 
+import type { Students } from "@/types/students";
+
 export default function ViewStudentDialog({
   open,
   onOpenChange,
@@ -46,7 +48,7 @@ export default function ViewStudentDialog({
     isLoading,
   } = useStudent(studentId || "");
 
-  const student = studentData?.student;
+  const student = studentData?.student as Students | null;
 
   const formatDate = (dateString: string) => {
     try {
@@ -55,7 +57,7 @@ export default function ViewStudentDialog({
         month: 'long',
         day: 'numeric'
       });
-    } catch (error) {
+    } catch (e: unknown) {
       return 'N/A';
     }
   };
