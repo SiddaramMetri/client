@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { useGetClassAttendance, useMarkBulkAttendance, useGetStudentsWithAttendance } from "@/hooks/api/use-attendance";
 import { toastError, toastSuccess } from "@/utils/toast";
 import { format } from "date-fns";
@@ -21,9 +22,14 @@ import {
   Search,
   UserX,
   XCircle,
-  Zap
+  Zap,
+  Grid,
+  List,
+  ChevronLeft,
+  ChevronRight,
+  Users
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 
 interface EnhancedDailyAttendanceProps {
   classId: string;
@@ -45,6 +51,11 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<string>("");
+  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'compact'>('compact');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(50);
+  const [quickMarkMode, setQuickMarkMode] = useState(false);
+  const [quickMarkStatus, setQuickMarkStatus] = useState('present');
 
   const formattedDate = format(date, "yyyy-MM-dd");
   const displayDate = format(date, "MMMM d, yyyy");
@@ -90,11 +101,11 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
     }
   }, [studentsWithAttendanceData, attendanceData, attendanceLoading]);
 
-  // Filtered and searched students
-  const filteredStudents = useMemo(() => {
-    if (!studentsWithAttendanceData) return [];
+  // Filtered and searched students with pagination
+  const { filteredStudents, paginatedStudents, totalPages } = useMemo(() => {
+    if (!studentsWithAttendanceData) return { filteredStudents: [], paginatedStudents: [], totalPages: 0 };
     
-    return studentsWithAttendanceData.filter(item => {
+    const filtered = studentsWithAttendanceData.filter(item => {
       const student = item.student;
       const studentId = student._id;
       if (!studentId) return false;
@@ -108,8 +119,19 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
         attendanceData[studentId] === statusFilter;
       
       return matchesSearch && matchesStatus;
-    }).map(item => item.student); // Return just the student data for compatibility
-  }, [studentsWithAttendanceData, searchQuery, statusFilter, attendanceData]);
+    }).map(item => item.student);
+
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginated = filtered.slice(startIndex, endIndex);
+    const pages = Math.ceil(filtered.length / itemsPerPage);
+
+    return { 
+      filteredStudents: filtered, 
+      paginatedStudents: paginated, 
+      totalPages: pages 
+    };
+  }, [studentsWithAttendanceData, searchQuery, statusFilter, attendanceData, currentPage, itemsPerPage]);
 
   // Attendance statistics
   const stats = useMemo(() => {
@@ -176,7 +198,7 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
     toastSuccess(`Updated ${selectedStudents.size} students to ${bulkStatus}`);
   };
 
-  const handleQuickMarkAll = (status: string) => {
+  const handleQuickMarkAll = useCallback((status: string) => {
     const updates: Record<string, string> = {};
     (studentsWithAttendanceData || []).forEach(item => {
       const studentId = item.student._id;
@@ -187,9 +209,28 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
     setAttendanceData(updates);
     
     toastSuccess(`Marked all students as ${status}`);
-  };
+  }, [studentsWithAttendanceData]);
 
-  const handleSaveAttendance = async () => {
+  const handleQuickMark = useCallback((studentId: string) => {
+    if (quickMarkMode) {
+      setAttendanceData(prev => ({
+        ...prev,
+        [studentId]: quickMarkStatus
+      }));
+    }
+  }, [quickMarkMode, quickMarkStatus]);
+
+  const handlePageChange = useCallback((direction: 'prev' | 'next') => {
+    setCurrentPage(prev => {
+      if (direction === 'prev') {
+        return Math.max(0, prev - 1);
+      } else {
+        return Math.min(totalPages - 1, prev + 1);
+      }
+    });
+  }, [totalPages]);
+
+  const handleSaveAttendance = useCallback(async () => {
     if (!classId) {
       toastError("Please select a class first");
       return;
@@ -238,7 +279,65 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
       // Error is handled in the mutation
       console.error('Attendance save error:', error);
     }
-  };
+  }, [classId, studentsWithAttendanceData, attendanceData, formattedDate, markBulkAttendanceMutation]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchQuery, statusFilter]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) {
+        return; // Don't trigger shortcuts when typing in inputs
+      }
+
+      switch (event.key.toLowerCase()) {
+        case 'p':
+          event.preventDefault();
+          handleQuickMarkAll('present');
+          break;
+        case 'a':
+          event.preventDefault();
+          handleQuickMarkAll('absent');
+          break;
+        case 'l':
+          event.preventDefault();
+          handleQuickMarkAll('late');
+          break;
+        case 'r':
+          event.preventDefault();
+          setAttendanceData({});
+          break;
+        case 's':
+          if (event.ctrlKey || event.metaKey) {
+            event.preventDefault();
+            handleSaveAttendance();
+          }
+          break;
+        case 'q':
+          event.preventDefault();
+          setQuickMarkMode(!quickMarkMode);
+          break;
+        case 'arrowleft':
+          if (currentPage > 0) {
+            event.preventDefault();
+            handlePageChange('prev');
+          }
+          break;
+        case 'arrowright':
+          if (currentPage < totalPages - 1) {
+            event.preventDefault();
+            handlePageChange('next');
+          }
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleQuickMarkAll, setAttendanceData, handleSaveAttendance, quickMarkMode, setQuickMarkMode, currentPage, totalPages, handlePageChange]);
 
   const getStatusOption = (status: string) => {
     return ATTENDANCE_STATUS_OPTIONS.find(option => option.value === status);
@@ -347,13 +446,72 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
         </Alert>
       )}
 
-      {/* Quick Actions */}
+      {/* Quick Actions & View Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Fast ways to mark attendance for all students</CardDescription>
+          <CardTitle className="flex items-center justify-between">
+            <span>Quick Actions & View Options</span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'compact' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('compact')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardTitle>
+          <CardDescription>
+            Fast ways to mark attendance and view options for large classes
+            <div className="mt-2 text-xs text-muted-foreground flex flex-wrap gap-4">
+              <span><kbd className="px-1 py-0.5 bg-muted rounded text-xs">P</kbd> All Present</span>
+              <span><kbd className="px-1 py-0.5 bg-muted rounded text-xs">A</kbd> All Absent</span>
+              <span><kbd className="px-1 py-0.5 bg-muted rounded text-xs">L</kbd> All Late</span>
+              <span><kbd className="px-1 py-0.5 bg-muted rounded text-xs">Q</kbd> Quick Mode</span>
+              <span><kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+S</kbd> Save</span>
+            </div>
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Quick Mark Mode */}
+          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border">
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={quickMarkMode}
+                onCheckedChange={setQuickMarkMode}
+              />
+              <div>
+                <p className="font-medium text-sm">Quick Mark Mode</p>
+                <p className="text-xs text-muted-foreground">Tap students to quickly mark with selected status</p>
+              </div>
+            </div>
+            {quickMarkMode && (
+              <Select value={quickMarkStatus} onValueChange={setQuickMarkStatus}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ATTENDANCE_STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${option.color}`}></div>
+                        {option.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          {/* Bulk Actions */}
           <div className="flex flex-wrap gap-2">
             <Button 
               variant="outline" 
@@ -362,7 +520,7 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
               className="text-green-600 border-green-200 hover:bg-green-50"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
-              Mark All Present
+              All Present
             </Button>
             <Button 
               variant="outline" 
@@ -371,7 +529,7 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
               className="text-red-600 border-red-200 hover:bg-red-50"
             >
               <XCircle className="h-4 w-4 mr-2" />
-              Mark All Absent
+              All Absent
             </Button>
             <Button 
               variant="outline" 
@@ -463,83 +621,182 @@ const EnhancedDailyAttendance: React.FC<EnhancedDailyAttendanceProps> = ({ class
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Student Attendance ({filteredStudents.length})</span>
             <div className="flex items-center gap-2">
-              <Checkbox
-                checked={selectedStudents.size === filteredStudents.length && filteredStudents.length > 0}
-                onCheckedChange={handleSelectAll}
-              />
-              <span className="text-sm text-muted-foreground">Select All</span>
+              <Users className="h-5 w-5" />
+              <span>Student Attendance ({filteredStudents.length})</span>
+            </div>
+            <div className="flex items-center gap-4">
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Page {currentPage + 1} of {totalPages}</span>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange('prev')}
+                      disabled={currentPage === 0}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange('next')}
+                      disabled={currentPage >= totalPages - 1}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedStudents.size === paginatedStudents.length && paginatedStudents.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+                <span className="text-sm text-muted-foreground">Select All</span>
+              </div>
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
-          {filteredStudents.map((student, index) => {
-            const studentId = student._id;
-            const studentStatus = attendanceData[studentId] || "present";
-            const statusOption = getStatusOption(studentStatus);
-            const isSelected = selectedStudents.has(studentId);
+        <CardContent>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {paginatedStudents.map((student) => {
+                const studentId = student._id;
+                const studentStatus = attendanceData[studentId] || "present";
+                const statusOption = getStatusOption(studentStatus);
+                const isSelected = selectedStudents.has(studentId);
 
-            return (
-              <div key={studentId}>
-                <div className="flex items-center gap-4 p-4 rounded-lg border hover:bg-accent/50 transition-colors">
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={(checked) => handleStudentSelect(studentId, checked as boolean)}
-                  />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-semibold text-primary">
+                return (
+                  <div 
+                    key={studentId} 
+                    className={`p-3 rounded-lg border transition-all hover:shadow-md ${
+                      quickMarkMode ? 'cursor-pointer hover:scale-105' : ''
+                    } ${isSelected ? 'ring-2 ring-primary' : ''}`}
+                    onClick={() => quickMarkMode && handleQuickMark(studentId)}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => handleStudentSelect(studentId, checked as boolean)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-semibold text-primary">
+                          {student.rollNumber}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm font-medium truncate mb-1">
+                      {student.firstName} {student.lastName}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      {statusOption && (
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${statusOption.textColor} bg-background border`}>
+                          <statusOption.icon className="w-3 h-3" />
+                          <span className="hidden sm:inline">{statusOption.label}</span>
+                        </div>
+                      )}
+                      {!quickMarkMode && (
+                        <Select
+                          value={studentStatus}
+                          onValueChange={(value) => handleStatusChange(studentId, value)}
+                        >
+                          <SelectTrigger className="w-20 h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ATTENDANCE_STATUS_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${option.color}`}></div>
+                                  <span className="text-xs">{option.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {paginatedStudents.map((student, index) => {
+                const studentId = student._id;
+                const studentStatus = attendanceData[studentId] || "present";
+                const statusOption = getStatusOption(studentStatus);
+                const isSelected = selectedStudents.has(studentId);
+
+                return (
+                  <div key={studentId}>
+                    <div 
+                      className={`flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-all ${
+                        quickMarkMode ? 'cursor-pointer' : ''
+                      } ${isSelected ? 'ring-1 ring-primary' : ''}`}
+                      onClick={() => quickMarkMode && handleQuickMark(studentId)}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => handleStudentSelect(studentId, checked as boolean)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-semibold text-primary">
                             {student.rollNumber}
                           </span>
                         </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">
+                            {student.firstName} {student.lastName}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            Roll: {student.rollNumber}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
-                          {student.firstName} {student.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Roll: {student.rollNumber} • {student.parentInfo?.primaryMobileNo}
-                        </p>
+
+                      <div className="flex items-center gap-2">
+                        {statusOption && (
+                          <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${statusOption.textColor} bg-background border`}>
+                            <statusOption.icon className="w-3 h-3" />
+                            <span className="hidden sm:inline">{statusOption.label}</span>
+                          </div>
+                        )}
+                        
+                        {!quickMarkMode && (
+                          <Select
+                            value={studentStatus}
+                            onValueChange={(value) => handleStatusChange(studentId, value)}
+                          >
+                            <SelectTrigger className="w-24 sm:w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ATTENDANCE_STATUS_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-3 h-3 rounded-full ${option.color}`}></div>
+                                    {option.label}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
                     </div>
+                    {index < paginatedStudents.length - 1 && <Separator className="my-1" />}
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    {statusOption && (
-                      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${statusOption.textColor} bg-background border`}>
-                        <statusOption.icon className="w-3 h-3" />
-                        {statusOption.label}
-                      </div>
-                    )}
-                    
-                    <Select
-                      value={studentStatus}
-                      onValueChange={(value) => handleStatusChange(studentId, value)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ATTENDANCE_STATUS_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center gap-2">
-                              <div className={`w-3 h-3 rounded-full ${option.color}`}></div>
-                              {option.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                {index < filteredStudents.length - 1 && <Separator />}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
